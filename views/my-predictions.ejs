@@ -136,31 +136,39 @@
 
               <!-- Body -->
               <div class="mp-card-body">
-                <div class="mp-team mp-team-a">
+                <div class="mp-team">
                   <img src="/flags/<%= teamFlags[p.teamA] || 'unknown' %>.png" alt="" class="mp-flag" onerror="this.src='/flags/unknown.png'">
                   <span class="mp-team-name"><%= p.teamA %></span>
+                  <div class="mp-score-box">
+                    <span class="mp-sbox-lbl">توقعك</span>
+                    <span class="mp-sbox-num"><%= p.scoreA %></span>
+                  </div>
+                  <% if (ended) { %>
+                  <div class="mp-score-box mp-score-actual">
+                    <span class="mp-sbox-lbl">النتيجة</span>
+                    <span class="mp-sbox-num"><%= p.actual_scoreA %></span>
+                  </div>
+                  <% } %>
                 </div>
 
                 <div class="mp-score-col">
                   <span class="mp-date"><%= matchDate.toLocaleDateString('ar-SA', { weekday:'long', month:'long', day:'numeric', timeZone:'Asia/Riyadh' }) %></span>
                   <span class="mp-time"><%= matchDate.toLocaleTimeString('ar-EG', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Riyadh' }) %></span>
-                  <div class="mp-score-boxes">
-                    <div class="mp-score-box">
-                      <span class="mp-sbox-lbl">توقعك</span>
-                      <span class="mp-sbox-num"><%= p.scoreA %>:<%= p.scoreB %></span>
-                    </div>
-                    <% if (ended) { %>
-                    <div class="mp-score-box mp-score-actual">
-                      <span class="mp-sbox-lbl">النتيجة</span>
-                      <span class="mp-sbox-num"><%= p.actual_scoreA %>:<%= p.actual_scoreB %></span>
-                    </div>
-                    <% } %>
-                  </div>
                 </div>
 
-                <div class="mp-team mp-team-b">
+                <div class="mp-team">
                   <img src="/flags/<%= teamFlags[p.teamB] || 'unknown' %>.png" alt="" class="mp-flag" onerror="this.src='/flags/unknown.png'">
                   <span class="mp-team-name"><%= p.teamB %></span>
+                  <div class="mp-score-box">
+                    <span class="mp-sbox-lbl">توقعك</span>
+                    <span class="mp-sbox-num"><%= p.scoreB %></span>
+                  </div>
+                  <% if (ended) { %>
+                  <div class="mp-score-box mp-score-actual">
+                    <span class="mp-sbox-lbl">النتيجة</span>
+                    <span class="mp-sbox-num"><%= p.actual_scoreB %></span>
+                  </div>
+                  <% } %>
                 </div>
               </div>
 
@@ -269,11 +277,11 @@
                   <div class="prediction-body">
                     <div class="prediction-detail">
                       <div class="detail-label">توقعت</div>
-                      <div class="detail-value"><%= p.scoreA %> - <%= p.scoreB %></div>
+                      <div class="detail-value"><%= p.teamA %> <%= p.scoreA %> - <%= p.teamB %> <%= p.scoreB %></div>
                     </div>
                     <div class="prediction-detail">
                       <div class="detail-label">النتيجة</div>
-                      <div class="detail-value"><% if (p.actual_scoreA == null) { %>لم تُسجَّل<% } else { %><%= p.actual_scoreA %> - <%= p.actual_scoreB %><% } %></div>
+                      <div class="detail-value"><% if (p.actual_scoreA == null) { %>لم تُسجَّل<% } else { %><%= p.teamA %> <%= p.actual_scoreA %> - <%= p.teamB %> <%= p.actual_scoreB %><% } %></div>
                     </div>
                     <div class="prediction-detail">
                       <div class="detail-label">النقاط</div>
