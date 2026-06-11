@@ -7418,7 +7418,7 @@ body.drawer-open {
     background: rgba(255,255,255,0.06); box-shadow: 0 4px 24px rgba(0,0,0,0.15);
   }
   .nw-hero-img {
-    position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden;
+    position: relative; width: 100%; height: 290px; overflow: hidden;
   }
   .nw-hero-placeholder { width: 100%; height: 100%; display: block; }
   .nw-breaking-badge {
@@ -7467,7 +7467,7 @@ body.drawer-open {
     border: 1px solid rgba(255,255,255,0.06);
   }
   .nw-card-img {
-    width: 100px; height: 68px; border-radius: 14px; overflow: hidden;
+    width: 140px; height: 100px; border-radius: 14px; overflow: hidden;
     flex-shrink: 0;
   }
   .nw-card-img svg { width: 100%; height: 100%; display: block; }

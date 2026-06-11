@@ -86,7 +86,7 @@
               <div class="nw-hero">
                 <div class="nw-hero-img">
                   <% if (hero.image) { %>
-                  <img src="<%= hero.image %>" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;" onerror="this.style.display='none'">
+                   <img src="<%= hero.image %>" style="width:100%;height:100%;object-fit:contain;display:block;border-radius:inherit;background:#0f172a;" onerror="this.style.display='none'">
                   <% } else { %>
                   <svg class="nw-hero-placeholder" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice">
                     <rect width="400" height="225" fill="rgba(255,255,255,0.04)"/>
@@ -122,7 +122,7 @@
                 <div class="nw-card nw-open-btn" style="cursor:pointer;" data-idx="<%= i %>">
                   <div class="nw-card-img">
                     <% if (item.image) { %>
-                    <img src="<%= item.image %>" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'">
+                    <img src="<%= item.image %>" style="width:100%;height:100%;object-fit:contain;display:block;background:#0f172a;" onerror="this.style.display='none'">
                     <% } else { %>
                     <svg viewBox="0 0 110 74" preserveAspectRatio="xMidYMid slice">
                       <rect width="110" height="74" fill="rgba(255,255,255,0.04)"/>
@@ -309,7 +309,7 @@
   <div id="news-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);overflow-y:auto;padding:20px 0;" onclick="if(event.target===this)closeNews()">
     <div style="max-width:500px;margin:0 auto;background:var(--surface,#1a2540);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
       <div id="nm-img-wrap" style="position:relative;width:100%;">
-        <img id="nm-img" src="" style="width:100%;max-height:260px;object-fit:cover;display:none;">
+        <img id="nm-img" src="" style="width:100%;max-height:300px;object-fit:contain;display:none;background:#0f172a;">
         <span id="nm-breaking" style="display:none;position:absolute;top:12px;right:12px;background:#ef4444;color:#fff;font-size:0.75rem;font-weight:800;padding:3px 10px;border-radius:20px;">عاجل</span>
         <button onclick="closeNews()" style="position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.5);border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">&#x2715;</button>
       </div>
