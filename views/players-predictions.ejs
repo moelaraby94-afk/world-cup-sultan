@@ -5,6 +5,10 @@
   <title>توقعات المتسابقين - مسابقة كأس العالم</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/styles.css">
+  <style>
+    .pp-mini-flag { width:18px; height:18px; border-radius:3px; object-fit:cover; vertical-align:middle; }
+    .pp-score-dash { margin:0 2px; color:#94a3b8; }
+  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -139,7 +143,13 @@
                           <span class="pp-player-name"><%= pred.user_name || 'مستخدم' %></span>
                         </span>
                         <span class="pp-td pp-td-score">
-                          <span class="pp-score-pill"><%= pred.scoreA %>:<%= pred.scoreB %></span>
+                          <span class="pp-score-pill">
+                            <img src="/flags/<%= teamFlags[m.teamA] || 'unknown' %>.png" class="pp-mini-flag" onerror="this.src='/flags/unknown.png'">
+                            <%= pred.scoreA %>
+                            <span class="pp-score-dash">-</span>
+                            <%= pred.scoreB %>
+                            <img src="/flags/<%= teamFlags[m.teamB] || 'unknown' %>.png" class="pp-mini-flag" onerror="this.src='/flags/unknown.png'">
+                          </span>
                         </span>
                         <span class="pp-td pp-td-acc">
                           <span class="pp-acc-pill"><%= userAccLabel %></span>
