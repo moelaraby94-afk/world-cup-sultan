@@ -332,7 +332,14 @@
             <!-- Round Panels -->
             <% roundDefs.forEach(function(rd, ri) {
                var roundMatches = matchesByRound[rd.round] || [];
-               var roundVisibleCount = roundMatches.filter(function(m) { return visiblePredictions.includes(m.id); }).length;
+                var roundVisibleCount = roundMatches.filter(function(m) {
+                  var start = new Date(m.start_at);
+                  var lockTime = new Date(start.getTime() - 10 * 60 * 1000);
+                  var deadlinePassed = Date.now() >= lockTime.getTime();
+                  var isManuallyHidden = hiddenPredictions.includes(m.id);
+                  var isManuallyVisible = visiblePredictions.includes(m.id);
+                  return (deadlinePassed && !isManuallyHidden) || isManuallyVisible;
+                }).length;
                var isRoundFullyVisible = roundMatches.length > 0 && roundVisibleCount === roundMatches.length;
                var isRoundPartiallyVisible = roundVisibleCount > 0 && roundVisibleCount < roundMatches.length;
             %>
@@ -367,7 +374,12 @@
                 <% } else { %>
                   <% roundMatches.forEach(function(match) {
                        var preds = (matchPredictions && matchPredictions[match.id]) ? matchPredictions[match.id] : [];
-                       var isVisible = visiblePredictions.includes(match.id);
+                       var start = new Date(match.start_at);
+                       var lockTime = new Date(start.getTime() - 10 * 60 * 1000);
+                       var deadlinePassed = Date.now() >= lockTime.getTime();
+                       var isManuallyHidden = hiddenPredictions.includes(match.id);
+                       var isManuallyVisible = visiblePredictions.includes(match.id);
+                       var isVisible = (deadlinePassed && !isManuallyHidden) || isManuallyVisible;
                   %>
                   <div class="pg-match-row <%= isVisible?'visible':'' %>" onclick="openPredModal(<%= match.id %>)">
                     <div class="pg-match-teams">
@@ -414,6 +426,11 @@
         </div>
 
         <script id="pred-data" type="application/json"><%- JSON.stringify(matches.map(function(m){
+          var s = new Date(m.start_at);
+          var lt = new Date(s.getTime() - 10 * 60 * 1000);
+          var dp = Date.now() >= lt.getTime();
+          var mh = hiddenPredictions.includes(m.id);
+          var mv = visiblePredictions.includes(m.id);
           return {
             id: m.id,
             teamA: m.teamA,
@@ -421,7 +438,7 @@
             flagA: teamFlags[m.teamA]||'unknown',
             flagB: teamFlags[m.teamB]||'unknown',
             date: new Date(m.start_at).toLocaleDateString('ar-EG',{weekday:'short',month:'short',day:'numeric',timeZone:'Asia/Riyadh'}),
-            visible: visiblePredictions.includes(m.id),
+            visible: (dp && !mh) || mv,
             preds: (matchPredictions && matchPredictions[m.id]) ? matchPredictions[m.id].map(function(p){ return {name:p.user_name||p.username, a:p.scoreA, b:p.scoreB}; }) : []
           };
         })) %></script>

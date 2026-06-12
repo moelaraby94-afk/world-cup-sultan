@@ -458,38 +458,60 @@ async function getVisiblePredictions() {
   return [];
 }
 
+async function getHiddenPredictions() {
+  const result = await pool.query("SELECT value FROM settings WHERE key = 'hidden_predictions'");
+  if (result.rows.length > 0) {
+    try { return JSON.parse(result.rows[0].value); } catch (e) { return []; }
+  }
+  return [];
+}
+
 async function togglePredictionVisibility(matchId) {
+  const hidden = await getHiddenPredictions();
   const visible = await getVisiblePredictions();
   const id = parseInt(matchId, 10);
-  let updated;
-  if (visible.includes(id)) {
-    updated = visible.filter(v => v !== id);
+  let updatedHidden, updatedVisible;
+  if (hidden.includes(id)) {
+    // Currently hidden → show (remove from hidden, add to visible)
+    updatedHidden = hidden.filter(v => v !== id);
+    updatedVisible = visible.includes(id) ? visible : [...visible, id];
   } else {
-    updated = [...visible, id];
+    // Currently visible or neutral → hide (add to hidden, remove from visible)
+    updatedHidden = [...hidden, id];
+    updatedVisible = visible.filter(v => v !== id);
   }
   await pool.query(
-    "INSERT INTO settings (key, value) VALUES ('visible_predictions', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
-    [JSON.stringify(updated)]
+    "INSERT INTO settings (key, value) VALUES ('hidden_predictions', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
+    [JSON.stringify(updatedHidden)]
   );
-  return updated;
+  await pool.query(
+    "INSERT INTO settings (key, value) VALUES ('visible_predictions', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
+    [JSON.stringify(updatedVisible)]
+  );
+  return updatedVisible;
 }
 
 async function toggleRoundPredictionsVisibility(round, matchIds, makeVisible) {
+  const hidden = await getHiddenPredictions();
   const visible = await getVisiblePredictions();
   const ids = matchIds.map(id => parseInt(id, 10));
-  let updated;
+  let updatedHidden, updatedVisible;
   if (makeVisible) {
-    // Add all match IDs to visible
-    updated = [...new Set([...visible, ...ids])];
+    updatedHidden = hidden.filter(v => !ids.includes(v));
+    updatedVisible = [...new Set([...visible, ...ids])];
   } else {
-    // Remove all match IDs from visible
-    updated = visible.filter(v => !ids.includes(v));
+    updatedHidden = [...new Set([...hidden, ...ids])];
+    updatedVisible = visible.filter(v => !ids.includes(v));
   }
   await pool.query(
-    "INSERT INTO settings (key, value) VALUES ('visible_predictions', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
-    [JSON.stringify(updated)]
+    "INSERT INTO settings (key, value) VALUES ('hidden_predictions', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
+    [JSON.stringify(updatedHidden)]
   );
-  return updated;
+  await pool.query(
+    "INSERT INTO settings (key, value) VALUES ('visible_predictions', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
+    [JSON.stringify(updatedVisible)]
+  );
+  return updatedVisible;
 }
 
 async function getAllPredictionsForMatch(matchId) {
@@ -877,6 +899,7 @@ module.exports = {
   publishRound,
   unpublishRound,
   getVisiblePredictions,
+  getHiddenPredictions,
   togglePredictionVisibility,
   toggleRoundPredictionsVisibility,
   getAllPredictionsForMatch,

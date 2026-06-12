@@ -442,8 +442,18 @@ app.get('/players-predictions', requireAuth, async (req, res) => {
     if (req.user.status !== 'approved') return res.redirect('/pending');
     const publishedRounds = await db.getPublishedRounds();
     const allMatches = await db.getMatches();
-    const visibleIds = await db.getVisiblePredictions();
-    const visibleMatches = allMatches.filter(m => visibleIds.includes(m.id));
+    const manuallyVisibleIds = await db.getVisiblePredictions();
+    const hiddenIds = await db.getHiddenPredictions();
+
+    const visibleMatches = allMatches.filter(m => {
+      const start = new Date(m.start_at);
+      const lockTime = new Date(start.getTime() - 10 * 60 * 1000);
+      const deadlinePassed = Date.now() >= lockTime.getTime();
+      const isManuallyVisible = manuallyVisibleIds.includes(m.id);
+      const isManuallyHidden = hiddenIds.includes(m.id);
+      return (deadlinePassed && !isManuallyHidden) || isManuallyVisible;
+    });
+
     const leaderboard = await db.getLeaderboard();
     const top3 = leaderboard.slice(0, 3);
 
@@ -625,6 +635,7 @@ app.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
     const currentRound = await db.getCurrentRound();
     const publishedRounds = await db.getPublishedRounds();
     const visiblePredictions = await db.getVisiblePredictions();
+    const hiddenPredictions = await db.getHiddenPredictions();
     const matchesByRound = {};
     matches.forEach(m => {
       if (!matchesByRound[m.round]) matchesByRound[m.round] = [];
@@ -638,7 +649,7 @@ app.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
     const teamFlags = db.getTeamFlags();
     const activeTab = req.query.tab || 'players';
     const newsItems = await db.getNews();
-    res.render('dashboard', { user: req.user, matches, leaderboard, pendingUsers, allUsers, currentRound, publishedRounds, matchesByRound, visiblePredictions, matchPredictions, groups, teamFlags, activeTab, newsItems, message: null });
+    res.render('dashboard', { user: req.user, matches, leaderboard, pendingUsers, allUsers, currentRound, publishedRounds, matchesByRound, visiblePredictions, hiddenPredictions, matchPredictions, groups, teamFlags, activeTab, newsItems, message: null });
   } catch (err) {
     console.error('Dashboard error:', err);
     res.status(500).render('error', { message: 'حدث خطأ في تحميل لوحة التحكم' });
