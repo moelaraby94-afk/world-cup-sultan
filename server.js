@@ -566,7 +566,14 @@ app.post('/admin/comments/show/:id', requireAuth, requireAdmin, adminLimiter, as
 });
 
 app.post('/admin/comments/delete/:id', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
-  try { await db.deleteComment(req.params.id); res.redirect('/dashboard?tab=comments'); } catch (err) { res.redirect('/dashboard?tab=comments'); }
+  try {
+    await db.deleteComment(req.params.id);
+    if (req.accepts('json')) { res.json({ success: true }); }
+    else { res.redirect('/dashboard?tab=comments'); }
+  } catch (err) {
+    if (req.accepts('json')) { res.json({ success: false, error: 'حدث خطأ' }); }
+    else { res.redirect('/dashboard?tab=comments'); }
+  }
 });
 
 // ===== Admin Routes =====
