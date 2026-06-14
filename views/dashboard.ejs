@@ -909,12 +909,12 @@
         body.innerHTML = countdownHtml + '<p class="pm-empty">لا يوجد متسابقون بعد</p>';
       } else {
         var html = countdownHtml + '<div class="pm-chips">';
+        withoutPred.forEach(function(u){
+          html += '<div class="pm-chip pm-chip-miss"><span class="pm-name">'+escHtml(u.name)+'</span><span class="pm-score pm-score-miss">لم يسجل توقع</span></div>';
+        });
         withPred.forEach(function(u){
           var p = predById[u.id];
           html += '<div class="pm-chip"><span class="pm-name">'+escHtml(u.name)+'</span><span class="pm-score">'+p.a+' - '+p.b+'</span></div>';
-        });
-        withoutPred.forEach(function(u){
-          html += '<div class="pm-chip pm-chip-miss"><span class="pm-name">'+escHtml(u.name)+'</span><span class="pm-score pm-score-miss">لم يسجل توقع</span></div>';
         });
         html += '</div>';
         body.innerHTML = html;
