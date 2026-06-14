@@ -8,6 +8,10 @@
   <style>
     .pp-mini-flag { width:18px; height:18px; border-radius:3px; object-fit:cover; vertical-align:middle; }
     .pp-score-dash { margin:0 2px; color:#94a3b8; }
+    .pp-single { margin-top:4px; font-size:13px !important; padding:3px 10px !important; }
+    .pp-vs-dash { font-size:16px; font-weight:900; color:#94a3b8; }
+    .pp-single-desktop { font-size:0.9rem; padding:2px 10px; border-radius:8px; background:linear-gradient(135deg,#D4AF37,#B8960F); color:#fff; font-weight:900; line-height:1.4; }
+    .pp-dash-desktop { font-size:1.1rem; font-weight:900; color:#94a3b8; }
   </style>
 </head>
 <body>
@@ -76,17 +80,20 @@
                 return (a.user_name || '').localeCompare(b.user_name || '');
               });
             %>
-            <div class="pp-card" data-pp-id="<%= m.id %>" onclick="ppToggle(<%= m.id %>)">
+              <div class="pp-card" data-pp-id="<%= m.id %>" onclick="ppToggle(<%= m.id %>)">
               <!-- Match Info -->
               <div class="pp-card-body">
                 <div class="pp-teams">
                   <div class="pp-team">
                     <img src="/flags/<%= teamFlags[m.teamA] || 'unknown' %>.png" alt="" class="pp-flag" onerror="this.src='/flags/unknown.png'">
                     <span class="pp-team-name"><%= m.teamA %></span>
+                    <% if (ended) { %>
+                      <span class="pp-score-badge pp-single"><%= m.actual_scoreA %></span>
+                    <% } %>
                   </div>
                   <div class="pp-vs">
                     <% if (ended) { %>
-                      <span class="pp-score-badge"><%= m.actual_scoreA %>:<%= m.actual_scoreB %></span>
+                      <span class="pp-vs-dash">-</span>
                     <% } else { %>
                       <span class="pp-vs-text">VS</span>
                     <% } %>
@@ -94,6 +101,9 @@
                   <div class="pp-team">
                     <img src="/flags/<%= teamFlags[m.teamB] || 'unknown' %>.png" alt="" class="pp-flag" onerror="this.src='/flags/unknown.png'">
                     <span class="pp-team-name"><%= m.teamB %></span>
+                    <% if (ended) { %>
+                      <span class="pp-score-badge pp-single"><%= m.actual_scoreB %></span>
+                    <% } %>
                   </div>
                 </div>
                 <div class="pp-meta">
@@ -187,20 +197,26 @@
           <% } else { %>
             <% matchesWithPredictions.forEach(function(item) { %>
               <div class="pp-match-card">
-                <div class="pp-match-header">
+                    <div class="pp-match-header">
                   <div class="pp-match-teams">
                     <div class="pp-match-team">
                       <div class="pp-match-flag"><img src="/flags/<%= teamFlags[item.match.teamA] || 'unknown' %>.png" alt="" onerror="this.src='/flags/unknown.png'"></div>
                       <span class="pp-match-name"><%= item.match.teamA %></span>
+                      <% if (item.match.actual_scoreA != null) { %>
+                        <span class="pp-final-score pp-single-desktop"><%= item.match.actual_scoreA %></span>
+                      <% } %>
                     </div>
                     <div class="pp-vs">
                       <% if (item.match.actual_scoreA != null) { %>
-                        <span class="pp-final-score"><%= item.match.actual_scoreA %> - <%= item.match.actual_scoreB %></span>
+                        <span class="pp-dash-desktop">-</span>
                       <% } else { %>VS<% } %>
                     </div>
                     <div class="pp-match-team">
                       <span class="pp-match-name"><%= item.match.teamB %></span>
                       <div class="pp-match-flag"><img src="/flags/<%= teamFlags[item.match.teamB] || 'unknown' %>.png" alt="" onerror="this.src='/flags/unknown.png'"></div>
+                      <% if (item.match.actual_scoreA != null) { %>
+                        <span class="pp-final-score pp-single-desktop"><%= item.match.actual_scoreB %></span>
+                      <% } %>
                     </div>
                   </div>
                   <div class="pp-match-meta">
