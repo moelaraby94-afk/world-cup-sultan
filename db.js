@@ -383,6 +383,11 @@ async function getAllUsers() {
   return result.rows;
 }
 
+async function getApprovedUsers() {
+  const result = await pool.query("SELECT id, name FROM users WHERE role != 'admin' AND status = 'approved' ORDER BY name ASC");
+  return result.rows;
+}
+
 async function approveUser(userId) {
   await pool.query("UPDATE users SET status = 'approved' WHERE id = $1", [userId]);
 }
@@ -925,6 +930,7 @@ module.exports = {
   updateNews,
   addComment,
   getCommentsByNewsId,
+  getApprovedUsers,
   getAllComments,
   hideComment,
   showComment,

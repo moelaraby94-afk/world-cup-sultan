@@ -460,13 +460,14 @@ app.get('/players-predictions', requireAuth, async (req, res) => {
 
     const leaderboard = await db.getLeaderboard();
     const top3 = leaderboard.slice(0, 3);
+    const approvedUsers = await db.getApprovedUsers();
 
     const matchesWithPredictions = await Promise.all(visibleMatches.map(async match => {
       const preds = await db.getAllPredictionsForMatch(match.id);
       return { match, predictions: preds };
     }));
 
-    res.render('players-predictions', { user: req.user, matchesWithPredictions, top3, leaderboard });
+    res.render('players-predictions', { user: req.user, matchesWithPredictions, top3, leaderboard, approvedUsers });
   } catch (err) {
     console.error('Players predictions error:', err);
     res.status(500).render('error', { message: 'حدث خطأ في تحميل الصفحة' });
