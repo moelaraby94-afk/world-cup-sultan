@@ -40,6 +40,16 @@
             </div>
           </div>
 
+          <!-- Date Filters (pills) -->
+          <div class="ms2-group-wrap" style="margin-top:0;">
+            <div class="ms2-group-scroll">
+              <button class="ms2-gpill ms-date-pill active" data-date="all" onclick="msDateFilter('all',this)">الكل</button>
+              <button class="ms2-gpill ms-date-pill" data-date="yesterday" onclick="msDateFilter('yesterday',this)">أمس</button>
+              <button class="ms2-gpill ms-date-pill" data-date="today" onclick="msDateFilter('today',this)">اليوم</button>
+              <button class="ms2-gpill ms-date-pill" data-date="tomorrow" onclick="msDateFilter('tomorrow',this)">غداً</button>
+            </div>
+          </div>
+
           <!-- Group Filters (pills) -->
           <div class="ms2-group-wrap">
             <div class="ms2-group-scroll" id="msGroupFilters">
@@ -71,7 +81,11 @@
                   if (isOpen) cardCls += ' ms-open';
                   if (locked && !ended) cardCls += ' ms-locked';
                 %>
-                <div class="<%= cardCls %>" data-ms-filter="<%= ended ? 'finished' : isUpcoming ? 'upcoming' : 'open' %>" data-ms-group="<%= group %>" data-ms-idx="<%= idx %>">
+                <%
+                  var msDate = new Date(match.start_at);
+                  var msDateKey = msDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
+                %>
+                <div class="<%= cardCls %>" data-ms-filter="<%= ended ? 'finished' : isUpcoming ? 'upcoming' : 'open' %>" data-ms-group="<%= group %>" data-ms-date="<%= msDateKey %>" data-ms-idx="<%= idx %>">
                   <div class="ms-card-badge <%= ended ? 'ms-badge-ended' : locked ? 'ms-badge-locked' : 'ms-badge-upcoming' %>">
                     <%= ended ? 'انتهت' : locked ? 'أغلقت التوقعات' : group + ' - الجولة ' + match.round %>
                   </div>
@@ -240,6 +254,14 @@
           <button class="sc-filter-pill" onclick="filterRound(3, this)">الجولة الثالثة</button>
         </div>
 
+        <!-- Date Filters (desktop) -->
+        <div class="sc-filters sc-date-filters" id="sc-date-filters" style="margin-top:8px;">
+          <button class="sc-filter-pill sc-date-pill active" data-desk-date="all" onclick="deskDateFilter('all',this)">الكل</button>
+          <button class="sc-filter-pill sc-date-pill" data-desk-date="yesterday" onclick="deskDateFilter('yesterday',this)">أمس</button>
+          <button class="sc-filter-pill sc-date-pill" data-desk-date="today" onclick="deskDateFilter('today',this)">اليوم</button>
+          <button class="sc-filter-pill sc-date-pill" data-desk-date="tomorrow" onclick="deskDateFilter('tomorrow',this)">غداً</button>
+        </div>
+
         <!-- Matches List -->
         <%
           const byDate = {};
@@ -273,7 +295,10 @@
                   if (match.actual_scoreA != null) { statusCls = 'sc-status-ended'; statusTxt = 'انتهت'; }
                   else if (match.locked) { statusCls = 'sc-status-locked'; statusTxt = 'مقفولة'; }
                 %>
-                <div class="sc-match-row" data-round="<%= match.round %>" data-idx="<%= matchIndex %>">
+                <%
+                  var deskDateKey = new Date(match.start_at).toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
+                %>
+                <div class="sc-match-row" data-round="<%= match.round %>" data-match-date="<%= deskDateKey %>" data-idx="<%= matchIndex %>">
                   <button class="sc-star" title="أضف للمفضلة">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                   </button>
@@ -326,6 +351,64 @@
   </div>
 
   <script>
+    // Date filter helpers
+    function getTodayKey() {
+      var d = new Date();
+      return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
+    }
+    function getDateKey(offset) {
+      var d = new Date();
+      d.setDate(d.getDate() + offset);
+      return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
+    }
+    function matchDateFilter(filter, matchDateKey) {
+      if (filter === 'all') return true;
+      var target;
+      if (filter === 'today') target = getTodayKey();
+      else if (filter === 'yesterday') target = getDateKey(-1);
+      else if (filter === 'tomorrow') target = getDateKey(1);
+      else return true;
+      return matchDateKey === target;
+    }
+
+    // Desktop date filter
+    function deskDateFilter(dateFilter, btn) {
+      document.querySelectorAll('.sc-date-pill').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      applyDeskFilters();
+    }
+    function getActiveRoundFilter() {
+      var activePill = document.querySelector('.sc-filter-pill.active');
+      return activePill ? activePill.getAttribute('onclick') && activePill.textContent.trim() : 'all';
+    }
+    function applyDeskFilters() {
+      var activeDatePill = document.querySelector('.sc-date-pill.active');
+      var dateFilter = activeDatePill ? activeDatePill.getAttribute('data-desk-date') : 'all';
+      var activeRoundPill = document.querySelector('.sc-filter-pill.active');
+      var roundFilter = activeRoundPill ? activeRoundPill.getAttribute('onclick') : null;
+      var roundVal = 'all';
+      if (roundFilter) {
+        var m = roundFilter.match(/filterRound\(['"]?([^'"]+?)['"]?,\s*this\)/);
+        if (m) roundVal = m[1];
+      }
+      document.querySelectorAll('.sc-match-row').forEach(function(row){
+        var d = row.getAttribute('data-match-date');
+        var r = row.getAttribute('data-round');
+        var matchDate = matchDateFilter(dateFilter, d);
+        var matchRound = (roundVal === 'all' || r === roundVal);
+        row.style.display = (matchDate && matchRound) ? '' : 'none';
+      });
+      document.querySelectorAll('.sc-date-group').forEach(function(g){
+        var vis = g.querySelectorAll('.sc-match-row:not([style*=\"display: none\"])');
+        g.style.display = vis.length === 0 ? 'none' : '';
+      });
+    }
+    function filterRound(r,btn){
+      document.querySelectorAll('.sc-filter-pill').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      applyDeskFilters();
+    }
+
     // Countdown (desktop)
     (function(){
       var target = new Date('2026-06-11T19:00:00Z').getTime();
@@ -348,12 +431,6 @@
       document.querySelectorAll('.sc-matches-list').forEach(function(el){ el.className='sc-matches-list'+(v==='grid'?' sc-grid-view':''); });
     }
     function toggleFilters(){ var p=document.getElementById('filter-panel'); p.style.display=p.style.display==='none'?'flex':'none'; }
-    function filterRound(r,btn){
-      document.querySelectorAll('.sc-filter-pill').forEach(function(b){b.classList.remove('active');});
-      btn.classList.add('active');
-      document.querySelectorAll('.sc-match-row').forEach(function(row){ row.style.display=(r==='all'||row.dataset.round==r)?'':'none'; });
-      document.querySelectorAll('.sc-date-group').forEach(function(g){ var vis=g.querySelectorAll('.sc-match-row:not([style*=\"display: none\"])'); g.style.display=vis.length===0?'none':''; });
-    }
     var visibleCount=8;
     (function initShowMore(){
       var rows=document.querySelectorAll('.sc-match-row');
@@ -364,7 +441,25 @@
     function showMoreMatches(){
       var rows=document.querySelectorAll('.sc-match-row');
       var end=Math.min(visibleCount+8,rows.length);
-      for(var i=visibleCount;i<end;i++) rows[i].style.display='';
+      for(var i=visibleCount;i<end;i++) {
+        if (applyDeskFilters) {
+          var activeDatePill = document.querySelector('.sc-date-pill.active');
+          var dateFilter = activeDatePill ? activeDatePill.getAttribute('data-desk-date') : 'all';
+          var d = rows[i].getAttribute('data-match-date');
+          var activeRoundPill = document.querySelector('.sc-filter-pill.active');
+          var r = rows[i].getAttribute('data-round');
+          var roundVal = 'all';
+          if (activeRoundPill) {
+            var m = activeRoundPill.getAttribute('onclick');
+            if (m) { var mr = m.match(/filterRound\(['"]?([^'"]+?)['"]?,\s*this\)/); if (mr) roundVal = mr[1]; }
+          }
+          var matchDate = matchDateFilter(dateFilter, d);
+          var matchRound = (roundVal === 'all' || r === roundVal);
+          rows[i].style.display = (matchDate && matchRound) ? '' : 'none';
+        } else {
+          rows[i].style.display = '';
+        }
+      }
       visibleCount=end;
       if(visibleCount>=rows.length) document.getElementById('show-more').style.display='none';
     }
@@ -373,22 +468,33 @@
     function msFilter(filter, btn) {
       document.querySelectorAll('.ms-filter, .ms2-tab').forEach(function(b){ b.classList.remove('active'); });
       btn.classList.add('active');
+      msApplyAllFilters();
+    }
+    function msDateFilter(dateFilter, btn) {
+      document.querySelectorAll('.ms-date-pill').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      msApplyAllFilters();
+    }
+    function msApplyAllFilters() {
       var cards = document.querySelectorAll('.ms-card');
+      var actFilter = document.querySelector('.ms2-tab.active');
+      var actGroup = document.querySelector('.ms2-gpill.active');
+      var actDatePill = document.querySelector('.ms-date-pill.active');
       cards.forEach(function(c){
-        var val = c.getAttribute('data-ms-filter');
-        c.style.display = (filter === 'all' || val === filter) ? '' : 'none';
+        var f = c.getAttribute('data-ms-filter');
+        var g = c.getAttribute('data-ms-group');
+        var d = c.getAttribute('data-ms-date');
+        var showF = !actFilter || actFilter.getAttribute('data-filter') === 'all' || actFilter.getAttribute('data-filter') === f;
+        var showG = !actGroup || actGroup.getAttribute('data-group') === 'all' || actGroup.getAttribute('data-group') === g;
+        var showD = !actDatePill || actDatePill.getAttribute('data-date') === 'all' || matchDateFilter(actDatePill.getAttribute('data-date'), d);
+        c.style.display = (showF && showG && showD) ? '' : 'none';
       });
       msCheckEmpty();
     }
     function msGroupFilter(group, btn) {
       document.querySelectorAll('.ms-gpill, .ms2-gpill').forEach(function(b){ b.classList.remove('active'); });
       btn.classList.add('active');
-      var cards = document.querySelectorAll('.ms-card');
-      cards.forEach(function(c){
-        var val = c.getAttribute('data-ms-group');
-        c.style.display = (group === 'all' || val === group) ? '' : 'none';
-      });
-      msCheckEmpty();
+      msApplyAllFilters();
     }
     function msCheckEmpty() {
       var visible = document.querySelectorAll('.ms-card:not([style*=\"display: none\"])');
@@ -417,11 +523,14 @@
       for (var i = msIdx; i < end; i++) {
         var f = cards[i].getAttribute('data-ms-filter');
         var g = cards[i].getAttribute('data-ms-group');
-        var actFilter = document.querySelector('.ms-filter.active');
-        var actGroup = document.querySelector('.ms-gpill.active');
+        var d = cards[i].getAttribute('data-ms-date');
+        var actFilter = document.querySelector('.ms2-tab.active');
+        var actGroup = document.querySelector('.ms2-gpill.active');
+        var actDatePill = document.querySelector('.ms-date-pill.active');
         var showF = !actFilter || actFilter.getAttribute('data-filter') === 'all' || actFilter.getAttribute('data-filter') === f;
         var showG = !actGroup || actGroup.getAttribute('data-group') === 'all' || actGroup.getAttribute('data-group') === g;
-        cards[i].style.display = (showF && showG) ? '' : 'none';
+        var showD = !actDatePill || actDatePill.getAttribute('data-date') === 'all' || matchDateFilter(actDatePill.getAttribute('data-date'), d);
+        cards[i].style.display = (showF && showG && showD) ? '' : 'none';
       }
       msIdx = end;
       if (msIdx >= cards.length) document.getElementById('msShowMore').style.display = 'none';
