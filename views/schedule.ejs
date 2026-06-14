@@ -5,6 +5,10 @@
   <title>جدول المباريات - كأس العالم 2026</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/styles.css">
+  <style>
+    .ms-date-pill { flex-shrink:0; padding:7px 14px; border-radius:20px; font-size:12px; font-weight:700; color:rgba(255,255,255,0.6); background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+    .ms-date-pill.active { background:#F59E0B; color:#0b132a; border-color:#F59E0B; }
+  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -43,10 +47,10 @@
           <!-- Date Filters (pills) -->
           <div class="ms2-group-wrap" style="margin-top:0;">
             <div class="ms2-group-scroll">
-              <button class="ms2-gpill ms-date-pill active" data-date="all" onclick="msDateFilter('all',this)">الكل</button>
-              <button class="ms2-gpill ms-date-pill" data-date="yesterday" onclick="msDateFilter('yesterday',this)">أمس</button>
-              <button class="ms2-gpill ms-date-pill" data-date="today" onclick="msDateFilter('today',this)">اليوم</button>
-              <button class="ms2-gpill ms-date-pill" data-date="tomorrow" onclick="msDateFilter('tomorrow',this)">غداً</button>
+              <button class="ms-date-pill active" data-date="all" onclick="msDateFilter('all',this)">الكل</button>
+              <button class="ms-date-pill" data-date="yesterday" onclick="msDateFilter('yesterday',this)">أمس</button>
+              <button class="ms-date-pill" data-date="today" onclick="msDateFilter('today',this)">اليوم</button>
+              <button class="ms-date-pill" data-date="tomorrow" onclick="msDateFilter('tomorrow',this)">غداً</button>
             </div>
           </div>
 
@@ -492,7 +496,7 @@
       msCheckEmpty();
     }
     function msGroupFilter(group, btn) {
-      document.querySelectorAll('.ms-gpill, .ms2-gpill').forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('.ms2-gpill').forEach(function(b){ b.classList.remove('active'); });
       btn.classList.add('active');
       msApplyAllFilters();
     }
