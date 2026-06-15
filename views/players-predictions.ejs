@@ -32,6 +32,24 @@
   }
 %>
 
+<%
+  var ppTodayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
+  var ppTomorrowD = new Date(); ppTomorrowD.setDate(ppTomorrowD.getDate() + 1);
+  var ppTomorrowKey = ppTomorrowD.toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
+  function ppDateKey(d) {
+    if (!d) return '';
+    try { return new Date(d).toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' }); } catch(e) { return ''; }
+  }
+  var ppCountAll = matchesWithPredictions.length;
+  var ppCountToday = 0, ppCountTomorrow = 0;
+  matchesWithPredictions.forEach(function(item) {
+    var dk = ppDateKey(item.match.start_at);
+    if (dk === ppTodayKey) ppCountToday++;
+    else if (dk === ppTomorrowKey) ppCountTomorrow++;
+  });
+  var ppActiveFilter = ppCountToday > 0 ? 'today' : 'all';
+%>
+
         <!-- ===== MOBILE PLAYERS PREDICTIONS (≤860px) ===== -->
         <div class="pp">
 
@@ -44,6 +62,15 @@
               </div>
               <h1 class="pp-header-title">توقعات المتسابقين</h1>
               <p class="pp-header-sub">اطلع على توقعات المتسابقين للمباريات المتاحة</p>
+            </div>
+          </div>
+
+          <!-- Date Filters -->
+          <div class="ms2-group-wrap" style="margin:0 0 10px;padding:0 12px;">
+            <div class="ms2-group-scroll">
+              <button class="ms-date-pill <%= ppActiveFilter==='today'?'active':'' %>" data-pp-date="today" onclick="ppDateFilter('today',this)">اليوم (<%= ppCountToday %>)</button>
+              <button class="ms-date-pill <%= ppActiveFilter==='tomorrow'?'active':'' %>" data-pp-date="tomorrow" onclick="ppDateFilter('tomorrow',this)">غداً (<%= ppCountTomorrow %>)</button>
+              <button class="ms-date-pill <%= ppActiveFilter==='all'?'active':'' %>" data-pp-date="all" onclick="ppDateFilter('all',this)">الكل (<%= ppCountAll %>)</button>
             </div>
           </div>
 
@@ -64,6 +91,7 @@
               var m = item.match;
               var ended = m.actual_scoreA != null;
               var matchDate = new Date(m.start_at);
+              var ppCardDateKey = ppDateKey(m.start_at);
               var preds = item.predictions || [];
 
               // Sort predictions: by accuracy desc, then points desc, then name
@@ -82,7 +110,7 @@
                 return (a.user_name || '').localeCompare(b.user_name || '');
               });
             %>
-              <div class="pp-card" data-pp-id="<%= m.id %>" onclick="ppToggle(<%= m.id %>)">
+              <div class="pp-card" data-pp-id="<%= m.id %>" data-pp-date="<%= ppCardDateKey %>" onclick="ppToggle(<%= m.id %>)">
               <!-- Match Info -->
               <div class="pp-card-body">
                 <div class="pp-teams">
@@ -224,6 +252,13 @@
             </div>
           </header>
 
+          <!-- Date Filters (desktop) -->
+          <div class="pr-filters" style="margin-bottom:14px;">
+            <button class="pr-filter-pill sc-date-pill <%= ppActiveFilter==='today'?'active':'' %>" data-pp-date="today" onclick="ppDateFilter('today',this)">اليوم (<%= ppCountToday %>)</button>
+            <button class="pr-filter-pill sc-date-pill <%= ppActiveFilter==='tomorrow'?'active':'' %>" data-pp-date="tomorrow" onclick="ppDateFilter('tomorrow',this)">غداً (<%= ppCountTomorrow %>)</button>
+            <button class="pr-filter-pill sc-date-pill <%= ppActiveFilter==='all'?'active':'' %>" data-pp-date="all" onclick="ppDateFilter('all',this)">الكل (<%= ppCountAll %>)</button>
+          </div>
+
           <% if (matchesWithPredictions.length === 0) { %>
             <div class="pp-empty">
               <div class="pp-empty-icon">👀</div>
@@ -232,7 +267,7 @@
             </div>
           <% } else { %>
             <% matchesWithPredictions.forEach(function(item) { %>
-              <div class="pp-match-card">
+              <div class="pp-match-card" data-pp-date="<%= ppDateKey(item.match.start_at) %>">
                     <div class="pp-match-header">
                   <div class="pp-match-teams">
                     <div class="pp-match-team">
@@ -328,6 +363,62 @@
   </div>
 
   <script>
+    function ppDateKey(d) {
+      if (!d) return '';
+      try { return new Date(d).toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' }); } catch(e) { return ''; }
+    }
+    function ppGetTodayKey() {
+      return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
+    }
+    function ppGetTomorrowKey() {
+      var d = new Date(); d.setDate(d.getDate() + 1);
+      return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
+    }
+    function ppDateFilter(filter, btn) {
+      // Update pills in both mobile and desktop
+      document.querySelectorAll('[data-pp-date]').forEach(function(b){ b.classList.remove('active'); });
+      if (btn) btn.classList.add('active');
+      // Same-date pills might be in both sections; sync them
+      document.querySelectorAll('[data-pp-date="' + filter + '"]').forEach(function(b){ b.classList.add('active'); });
+      var targetKey;
+      if (filter === 'today') targetKey = ppGetTodayKey();
+      else if (filter === 'tomorrow') targetKey = ppGetTomorrowKey();
+      // Filter mobile cards
+      document.querySelectorAll('.pp-card[data-pp-date]').forEach(function(card){
+        if (filter === 'all') { card.style.display = ''; }
+        else { card.style.display = (card.getAttribute('data-pp-date') === targetKey) ? '' : 'none'; }
+      });
+      // Filter desktop cards
+      document.querySelectorAll('.pp-match-card[data-pp-date]').forEach(function(card){
+        if (filter === 'all') { card.style.display = ''; }
+        else { card.style.display = (card.getAttribute('data-pp-date') === targetKey) ? '' : 'none'; }
+      });
+      // Show/hide empty messages
+      var visibleMobile = document.querySelectorAll('.pp-card[data-pp-date]:not([style*=\"display: none\"])');
+      var visibleDesktop = document.querySelectorAll('.pp-match-card[data-pp-date]:not([style*=\"display: none\"])');
+      var existingMsg = document.getElementById('ppFilterEmpty');
+      if (visibleMobile.length === 0 && visibleDesktop.length === 0) {
+        if (!existingMsg) {
+          var msg = document.createElement('div');
+          msg.id = 'ppFilterEmpty';
+          msg.className = 'pp-empty-state';
+          msg.style.cssText = 'text-align:center;padding:30px 16px;';
+          msg.innerHTML = '<div class="pp-empty-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="40" height="40"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg></div><h3 style="margin:8px 0 4px;font-size:1rem;">لا توجد مباريات في هذا اليوم</h3>';
+          var mobileContainer = document.querySelector('.pp-list');
+          if (mobileContainer) mobileContainer.appendChild(msg);
+        } else { existingMsg.style.display = ''; }
+      } else {
+        if (existingMsg) existingMsg.style.display = 'none';
+      }
+    }
+    // Initialize filter on page load
+    (function(){
+      var activePill = document.querySelector('[data-pp-date].active');
+      if (activePill) {
+        ppDateFilter(activePill.getAttribute('data-pp-date'), activePill);
+      }
+    })();
+
     var ppOpenId = null;
     function ppToggle(id) {
       var card = document.querySelector('.pp-card[data-pp-id="' + id + '"]');
