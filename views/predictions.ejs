@@ -5,6 +5,12 @@
   <title>إضافة توقع - مسابقة كأس العالم</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/styles.css">
+  <style>
+    .ms-date-pill { flex-shrink:0; padding:7px 14px; border-radius:20px; font-size:12px; font-weight:700; color:rgba(255,255,255,0.6); background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+    .ms-date-pill.active { background:#F59E0B; color:#0b132a; border-color:#F59E0B; }
+    .sc-date-pill { font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; }
+    .pr-date-filters { display:flex; gap:6px; flex-wrap:wrap; }
+  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -75,6 +81,16 @@
             <span>يغلق التوقع تلقائياً قبل بداية كل مباراة بـ 10 دقائق</span>
           </div>
 
+          <!-- Date Filters (mobile) -->
+          <div class="ms2-group-wrap" style="margin-top:0;">
+            <div class="ms2-group-scroll">
+              <button class="ms-date-pill active" data-pc2-date="all" onclick="pc2DateFilter('all',this)">الكل</button>
+              <button class="ms-date-pill" data-pc2-date="yesterday" onclick="pc2DateFilter('yesterday',this)">أمس</button>
+              <button class="ms-date-pill" data-pc2-date="today" onclick="pc2DateFilter('today',this)">اليوم</button>
+              <button class="ms-date-pill" data-pc2-date="tomorrow" onclick="pc2DateFilter('tomorrow',this)">غداً</button>
+            </div>
+          </div>
+
           <!-- Match Cards -->
           <%
             var pc2ByRound = {};
@@ -102,8 +118,9 @@
                 var saved = item.prediction != null;
                 var valA = saved ? item.prediction.scoreA : 0;
                 var valB = saved ? item.prediction.scoreB : 0;
+                var pc2Date = new Date(m.start_at).toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
               %>
-              <div class="pc2-card <%= locked && !ended ? 'pc2-card-locked' : '' %> <%= ended ? 'pc2-card-ended' : '' %> <%= saved && !ended ? 'pc2-card-saved' : '' %>">
+              <div class="pc2-card <%= locked && !ended ? 'pc2-card-locked' : '' %> <%= ended ? 'pc2-card-ended' : '' %> <%= saved && !ended ? 'pc2-card-saved' : '' %>" data-pc2-date="<%= pc2Date %>">
 
                 <!-- Card Top: stage + date + time -->
                 <div class="pc2-card-top">
@@ -123,14 +140,15 @@
                     <span class="pc2-team-name"><%= m.teamA %></span>
                   </div>
 
-                  <!-- Score Stepper -->
-                  <% if (ended) { %>
-                  <div class="pc2-final-score">
-                    <span><%= m.actual_scoreA %></span>
+                  <!-- Prediction Display / Score Stepper -->
+                  <% if (saved) { %>
+                  <div class="pc2-pred-score">
+                    <span class="pc2-pred-label">توقعك:</span>
+                    <span class="pc2-pred-num"><%= valA %></span>
                     <span class="pc2-score-dash">-</span>
-                    <span><%= m.actual_scoreB %></span>
+                    <span class="pc2-pred-num"><%= valB %></span>
                   </div>
-                  <% } else { %>
+                  <% } else if (!ended) { %>
                   <form method="POST" action="/predictions" class="pc2-form" id="pc2Form<%= m.id %>">
                     <input type="hidden" name="matchId" value="<%= m.id %>">
                     <input type="hidden" name="scoreA" id="pc2A<%= m.id %>" value="<%= valA %>">
@@ -149,6 +167,10 @@
                       </div>
                     </div>
                   </form>
+                  <% } else { %>
+                  <div class="pc2-pred-none">
+                    <span>لم تسجل توقعك</span>
+                  </div>
                   <% } %>
 
                   <!-- Team B -->
@@ -165,6 +187,9 @@
                       <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
                       انتهت المباراة · <%= m.actual_scoreA %>-<%= m.actual_scoreB %>
                     </span>
+                    <% if (!saved) { %>
+                    <span class="pc2-foot-nopred">لم تسجل توقعك</span>
+                    <% } %>
                   <% } else if (locked) { %>
                     <span class="pc2-foot-locked">
                       <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2z"/></svg>
@@ -300,6 +325,14 @@
           <button class="pr-filter-pill" onclick="prFilterRound(3,this)">الجولة 3</button>
         </div>
 
+        <!-- Date Filters (desktop) -->
+        <div class="pr-filters pr-date-filters" style="margin-top:8px;">
+          <button class="pr-filter-pill sc-date-pill active" data-pr-date="all" onclick="prDateFilter('all',this)">الكل</button>
+          <button class="pr-filter-pill sc-date-pill" data-pr-date="yesterday" onclick="prDateFilter('yesterday',this)">أمس</button>
+          <button class="pr-filter-pill sc-date-pill" data-pr-date="today" onclick="prDateFilter('today',this)">اليوم</button>
+          <button class="pr-filter-pill sc-date-pill" data-pr-date="tomorrow" onclick="prDateFilter('tomorrow',this)">غداً</button>
+        </div>
+
         <%
           var prByRound = {};
           matches.forEach(function(itm){ var r=itm.match.round||1; if(!prByRound[r]) prByRound[r]=[]; prByRound[r].push(itm); });
@@ -311,17 +344,27 @@
             <div class="pr-round-group" data-round="<%= round %>">
               <div class="pr-round-header"><span class="pr-round-badge">الجولة <%= round %></span><span class="pr-round-count"><%= prByRound[round].length %> مباراة</span></div>
               <div class="pr-matches-list">
-                <% prByRound[round].forEach(function(itm){ var lck=itm.locked; var hasP=itm.prediction!=null; %>
-                <div class="pr-match-row <%= lck ? 'pr-match-locked' : '' %>" data-round="<%= round %>">
+                <% prByRound[round].forEach(function(itm){ var lck=itm.locked; var hasP=itm.prediction!=null; var ended=itm.match.actual_scoreA!=null; var prDateKey=new Date(itm.match.start_at).toLocaleDateString('en-CA',{timeZone:'Asia/Riyadh'}); %>
+                <div class="pr-match-row <%= lck ? 'pr-match-locked' : '' %>" data-round="<%= round %>" data-pr-date="<%= prDateKey %>">
                   <span class="pr-group-badge"><%= itm.match.stage %></span>
                   <div class="pr-team pr-team-a"><span class="pr-team-name"><%= itm.match.teamA %></span><div class="pr-flag-wrap"><img src="/flags/<%= teamFlags[itm.match.teamA]||'unknown' %>.png" class="pr-flag" onerror="this.src='/flags/unknown.png'" /></div></div>
                   <div class="pr-match-meta"><span class="pr-match-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><%= new Date(itm.match.start_at).toLocaleTimeString('ar-EG', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Riyadh' }) %></span><span class="pr-match-group"><%= itm.match.stage %></span></div>
                   <div class="pr-vs-badge"><% if (itm.match.actual_scoreA!=null) { %><span class="pr-final-score"><%= itm.match.actual_scoreA %>-<%= itm.match.actual_scoreB %></span><% } else { %>VS<% } %></div>
                   <div class="pr-team pr-team-b"><div class="pr-flag-wrap"><img src="/flags/<%= teamFlags[itm.match.teamB]||'unknown' %>.png" class="pr-flag" onerror="this.src='/flags/unknown.png'" /></div><span class="pr-team-name"><%= itm.match.teamB %></span></div>
                   <div class="pr-action-col">
-                    <form method="POST" action="/predictions" class="pr-pred-form"><input type="hidden" name="matchId" value="<%= itm.match.id %>"><div class="pr-score-inputs"><input type="number" name="scoreA" value="<%= hasP ? itm.prediction.scoreA : '' %>" min="0" placeholder="0" required class="pr-score-input" <%= lck ? 'disabled' : '' %>><span class="pr-score-sep">-</span><input type="number" name="scoreB" value="<%= hasP ? itm.prediction.scoreB : '' %>" min="0" placeholder="0" required class="pr-score-input" <%= lck ? 'disabled' : '' %>></div>
-                    <% if (lck) { %><span class="pr-status-btn pr-status-locked">مقفل</span>
-                    <% } else if (hasP) { %><button type="submit" class="pr-save-btn">حفظ</button><span class="pr-status-btn pr-status-predicted">تم التوقع</span>
+                    <% if (hasP) { %>
+                    <div class="pr-pred-display">
+                      <span class="pr-pred-label">توقعك:</span>
+                      <span class="pr-pred-score"><%= itm.prediction.scoreA %>-<%= itm.prediction.scoreB %></span>
+                    </div>
+                    <% } else if (ended) { %>
+                    <div class="pr-pred-display pr-pred-missed">
+                      <span class="pr-pred-label">لم تسجل توقعك</span>
+                    </div>
+                    <% } %>
+                    <form method="POST" action="/predictions" class="pr-pred-form"><input type="hidden" name="matchId" value="<%= itm.match.id %>"><div class="pr-score-inputs"><input type="number" name="scoreA" value="<%= hasP ? itm.prediction.scoreA : '' %>" min="0" placeholder="0" required class="pr-score-input" <%= (lck||ended) ? 'disabled' : '' %>><span class="pr-score-sep">-</span><input type="number" name="scoreB" value="<%= hasP ? itm.prediction.scoreB : '' %>" min="0" placeholder="0" required class="pr-score-input" <%= (lck||ended) ? 'disabled' : '' %>></div>
+                    <% if (lck||ended) { %><span class="pr-status-btn pr-status-locked">مقفل</span>
+                    <% } else if (hasP) { %><button type="submit" class="pr-save-btn">تعديل</button><span class="pr-status-btn pr-status-predicted">تم التوقع</span>
                     <% } else { %><button type="submit" class="pr-save-btn">حفظ</button><span class="pr-status-btn pr-status-open">متاح</span><% } %>
                     </form>
                   </div>
@@ -458,6 +501,140 @@
       cards.forEach(function(c, i){ if (i < newCount) c.style.display = ''; });
       pc2VisibleCount = newCount;
       if (pc2VisibleCount >= cards.length) document.getElementById('pc2ShowMore').style.display = 'none';
+    }
+
+    // ===== Date Filter Helpers =====
+    function prGetTodayKey() {
+      var d = new Date();
+      return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
+    }
+    function prGetDateKey(offset) {
+      var d = new Date();
+      d.setDate(d.getDate() + offset);
+      return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
+    }
+    function prMatchDateFilter(filter, matchDateKey) {
+      if (filter === 'all') return true;
+      var target;
+      if (filter === 'today') target = prGetTodayKey();
+      else if (filter === 'yesterday') target = prGetDateKey(-1);
+      else if (filter === 'tomorrow') target = prGetDateKey(1);
+      else return true;
+      return matchDateKey === target;
+    }
+
+    // Desktop date filter
+    function prDateFilter(dateFilter, btn) {
+      document.querySelectorAll('.pr-date-filters .sc-date-pill').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      prApplyFilters();
+    }
+    function prApplyFilters() {
+      // Active filters
+      var activeDatePill = document.querySelector('.pr-date-filters .sc-date-pill.active');
+      var dateFilter = activeDatePill ? activeDatePill.getAttribute('data-pr-date') : 'all';
+      var actRound = document.querySelector('#pr-filters .pr-filter-pill.active');
+      var roundFilter = 'all';
+      if (actRound) {
+        var m = actRound.getAttribute('onclick');
+        if (m) { var mr = m.match(/prFilterRound\(['"]?([^'"]+?)['"]?,\s*this\)/); if (mr) roundFilter = mr[1]; }
+      }
+      // Apply to desktop rows
+      document.querySelectorAll('.pr-match-row').forEach(function(row){
+        var d = row.getAttribute('data-pr-date');
+        var r = row.getAttribute('data-round');
+        var showDate = prMatchDateFilter(dateFilter, d);
+        var showRound = (roundFilter === 'all' || r === roundFilter);
+        row.style.display = (showDate && showRound) ? '' : 'none';
+      });
+      document.querySelectorAll('.pr-round-group').forEach(function(g){
+        var vis = g.querySelectorAll('.pr-match-row:not([style*=\"display: none\"])');
+        g.style.display = vis.length === 0 ? 'none' : '';
+      });
+    }
+    // Override original round filter to apply date too
+    var origRoundFilter = prFilterRound;
+    function prFilterRound(r, btn) {
+      document.querySelectorAll('#pr-filters .pr-filter-pill').forEach(function(b){ b.classList.remove('active'); });
+      if (btn) btn.classList.add('active');
+      prApplyFilters();
+    }
+
+    // Mobile date filter (PC2)
+    function pc2DateFilter(dateFilter, btn) {
+      document.querySelectorAll('[data-pc2-date]').forEach(function(b){
+        if (b.classList.contains('ms-date-pill')) {
+          b.classList.remove('active');
+        }
+      });
+      btn.classList.add('active');
+      pc2ApplyFilters();
+    }
+    function pc2ApplyFilters() {
+      var activeDatePill = document.querySelector('.ms-date-pill.active[data-pc2-date]');
+      var dateFilter = activeDatePill ? activeDatePill.getAttribute('data-pc2-date') : 'all';
+      // Apply to visible cards (within current round)
+      pc2VisibleCards().forEach(function(card){
+        var d = card.getAttribute('data-pc2-date');
+        card.style.display = prMatchDateFilter(dateFilter, d) ? '' : 'none';
+      });
+      pc2AfterFilter();
+    }
+    function pc2AfterFilter() {
+      var cards = pc2VisibleCards();
+      var visible = cards.filter(function(c){ return c.style.display !== 'none'; });
+      var sm = document.getElementById('pc2ShowMore');
+      if (sm) sm.style.display = visible.length > pc2VisibleCount ? '' : 'none';
+      pc2CheckFilterEmpty();
+    }
+    function pc2CheckFilterEmpty() {
+      var visible = pc2VisibleCards().filter(function(c){ return c.style.display !== 'none'; });
+      var existing = document.getElementById('pc2FilterEmpty');
+      if (visible.length === 0) {
+        if (!existing) {
+          var msg = document.createElement('div');
+          msg.id = 'pc2FilterEmpty';
+          msg.className = 'pc2-empty';
+          msg.innerHTML = '<div class=\"pc2-empty-icon\">⚽</div><p>لا توجد مباريات تطابق الفلتر</p>';
+          var container = document.querySelector('.pc2-round-group');
+          if (container) container.appendChild(msg);
+        } else { existing.style.display = ''; }
+      } else {
+        if (existing) existing.style.display = 'none';
+      }
+    }
+    // Update PC2 show more to respect date filter
+    function pc2VisibleCards() {
+      var activeGroup = pc2CurrentRound
+        ? document.getElementById('pc2Group' + pc2CurrentRound)
+        : document.querySelector('.pc2-round-group');
+      if (!activeGroup) return [];
+      return Array.from(activeGroup.querySelectorAll('.pc2-card'));
+    }
+    function pc2ResetShowMore() {
+      pc2VisibleCount = 5;
+      var cards = pc2VisibleCards();
+      var datePill = document.querySelector('.ms-date-pill.active[data-pc2-date]');
+      var dateFilter = datePill ? datePill.getAttribute('data-pc2-date') : 'all';
+      if (dateFilter === 'all') {
+        cards.forEach(function(c, i){ c.style.display = i < pc2VisibleCount ? '' : 'none'; });
+      } else {
+        cards.forEach(function(c){ c.style.display = prMatchDateFilter(dateFilter, c.getAttribute('data-pc2-date')) ? '' : 'none'; });
+        var visible = cards.filter(function(c){ return c.style.display !== 'none'; });
+        visible.forEach(function(c, i){ c.style.display = i < pc2VisibleCount ? '' : 'none'; });
+      }
+      var visibleCards = cards.filter(function(c){ return c.style.display !== 'none'; });
+      var sm = document.getElementById('pc2ShowMore');
+      if (sm) sm.style.display = visibleCards.length > pc2VisibleCount ? '' : 'none';
+      pc2CheckFilterEmpty();
+    }
+    function pc2LoadMore() {
+      var cards = pc2VisibleCards().filter(function(c){ return c.style.display !== 'none'; });
+      var newCount = pc2VisibleCount + 5;
+      cards.forEach(function(c, i){ if (i < newCount) c.style.display = ''; });
+      pc2VisibleCount = newCount;
+      var allCards = pc2VisibleCards().filter(function(c){ return c.style.display !== 'none'; });
+      if (pc2VisibleCount >= allCards.length) document.getElementById('pc2ShowMore').style.display = 'none';
     }
 
     // Close dropdown on outside click

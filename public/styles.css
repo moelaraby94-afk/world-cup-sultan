@@ -2961,6 +2961,20 @@ footer {
   letter-spacing: 0.02em;
 }
 
+/* Prediction Display (Desktop) */
+.pr-pred-display {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+}
+.pr-pred-label {
+  font-size: 12px; font-weight: 700; color: #64748b;
+}
+.pr-pred-score {
+  font-size: 16px; font-weight: 900; color: #2563eb;
+}
+.pr-pred-missed .pr-pred-label {
+  color: #ef4444; font-size: 12px;
+}
+
 /* Action Column */
 .pr-action-col {
   flex-shrink: 0;
@@ -5720,6 +5734,27 @@ footer {
     font-size: 28px; font-weight: 900; color: #1e293b; flex-shrink: 0;
   }
   .pc2-score-dash { color: #cbd5e1; }
+
+  /* User prediction display */
+  .pc2-pred-score {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 24px; font-weight: 900; color: #2563eb; flex-shrink: 0;
+  }
+  .pc2-pred-label {
+    font-size: 11px; font-weight: 700; color: #64748b;
+  }
+  .pc2-pred-num { font-size: 24px; font-weight: 900; color: #2563eb; }
+  .pc2-pred-none {
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; padding: 8px 16px;
+  }
+  .pc2-pred-none span {
+    font-size: 13px; font-weight: 700; color: #ef4444;
+  }
+  .pc2-foot-nopred {
+    display: block; text-align: center; margin-top: 6px;
+    font-size: 12px; font-weight: 700; color: #ef4444;
+  }
 
   /* Card footer */
   .pc2-card-foot {
