@@ -313,6 +313,14 @@ async function init() {
       await client.query("INSERT INTO settings (key, value) VALUES ('tz_fix_v2', '1')");
       console.log('Migration: restored all match times + fixed 6 specific errors (tz_fix_v2)');
     }
+    // Fix Saudi Arabia vs Uruguay match time (should be 1am Riyadh = 22:00 UTC)
+    const saFix = await client.query("SELECT value FROM settings WHERE key = 'sa_uy_fix'");
+    if (saFix.rows.length === 0) {
+      await client.query("UPDATE matches SET start_at='2026-06-15T22:00:00Z' WHERE teamA='السعودية' AND teamB='الأوروغواي' AND round=1");
+      await client.query("INSERT INTO settings (key, value) VALUES ('sa_uy_fix', '1')");
+      console.log('Migration: fixed Saudi Arabia vs Uruguay match time to 1am Riyadh (22:00 UTC)');
+    }
+
     // Clean up old migration flag
     await client.query("DELETE FROM settings WHERE key = 'tz_migration_done'");
 
