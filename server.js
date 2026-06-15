@@ -6,22 +6,13 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
-const fs = require('fs');
 const db = require('./db');
 require('dotenv').config();
 
-const uploadsDir = path.join(__dirname, 'public', 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+// Image storage is in-database (base64) — no filesystem uploads directory needed
 
-const newsStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, 'news-' + Date.now() + ext);
-  }
-});
 const newsUpload = multer({
-  storage: newsStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) cb(null, true);
@@ -496,7 +487,11 @@ app.post('/admin/news/add', requireAuth, requireAdmin, adminLimiter, newsUpload.
   try {
     const { title, body, breaking } = req.body;
     if (!title || !body) return res.redirect('/dashboard?tab=news');
-    const image_path = req.file ? '/uploads/' + req.file.filename : null;
+    var image_path = null;
+    if (req.file) {
+      var b64 = req.file.buffer.toString('base64');
+      image_path = 'data:' + req.file.mimetype + ';base64,' + b64;
+    }
     await db.addNews({ title, body, image_path, breaking: breaking === 'on' });
     res.redirect('/dashboard?tab=news');
   } catch (err) {
@@ -511,7 +506,8 @@ app.post('/admin/news/edit/:id', requireAuth, requireAdmin, adminLimiter, newsUp
     if (!title || !body) return res.redirect('/dashboard?tab=news');
     const updateData = { title, body, breaking: breaking === 'on' };
     if (req.file) {
-      updateData.image_path = '/uploads/' + req.file.filename;
+      var b64 = req.file.buffer.toString('base64');
+      updateData.image_path = 'data:' + req.file.mimetype + ';base64,' + b64;
     }
     await db.updateNews(req.params.id, updateData);
     res.redirect('/dashboard?tab=news');
@@ -523,11 +519,7 @@ app.post('/admin/news/edit/:id', requireAuth, requireAdmin, adminLimiter, newsUp
 
 app.post('/admin/news/delete/:id', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
-    const deleted = await db.deleteNews(req.params.id);
-    if (deleted && deleted.image_path) {
-      const filePath = path.join(__dirname, 'public', deleted.image_path);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
+    await db.deleteNews(req.params.id);
     res.redirect('/dashboard?tab=news');
   } catch (err) {
     console.error('Delete news error:', err);
