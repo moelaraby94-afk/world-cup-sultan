@@ -34,18 +34,18 @@
 
 <%
   var ppTodayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
-  var ppTomorrowD = new Date(); ppTomorrowD.setDate(ppTomorrowD.getDate() + 1);
-  var ppTomorrowKey = ppTomorrowD.toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
+  var ppYesterdayD = new Date(); ppYesterdayD.setDate(ppYesterdayD.getDate() - 1);
+  var ppYesterdayKey = ppYesterdayD.toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
   function ppDateKey(d) {
     if (!d) return '';
     try { return new Date(d).toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' }); } catch(e) { return ''; }
   }
   var ppCountAll = matchesWithPredictions.length;
-  var ppCountToday = 0, ppCountTomorrow = 0;
+  var ppCountToday = 0, ppCountYesterday = 0;
   matchesWithPredictions.forEach(function(item) {
     var dk = ppDateKey(item.match.start_at);
     if (dk === ppTodayKey) ppCountToday++;
-    else if (dk === ppTomorrowKey) ppCountTomorrow++;
+    else if (dk === ppYesterdayKey) ppCountYesterday++;
   });
   var ppActiveFilter = ppCountToday > 0 ? 'today' : 'all';
 %>
@@ -69,7 +69,7 @@
           <div class="ms2-group-wrap" style="margin:0 0 10px;padding:0 12px;">
             <div class="ms2-group-scroll">
               <button class="ms-date-pill <%= ppActiveFilter==='today'?'active':'' %>" data-pp-date="today" onclick="ppDateFilter('today',this)">اليوم (<%= ppCountToday %>)</button>
-              <button class="ms-date-pill <%= ppActiveFilter==='tomorrow'?'active':'' %>" data-pp-date="tomorrow" onclick="ppDateFilter('tomorrow',this)">غداً (<%= ppCountTomorrow %>)</button>
+              <button class="ms-date-pill <%= ppActiveFilter==='yesterday'?'active':'' %>" data-pp-date="yesterday" onclick="ppDateFilter('yesterday',this)">الأمس (<%= ppCountYesterday %>)</button>
               <button class="ms-date-pill <%= ppActiveFilter==='all'?'active':'' %>" data-pp-date="all" onclick="ppDateFilter('all',this)">الكل (<%= ppCountAll %>)</button>
             </div>
           </div>
@@ -255,7 +255,7 @@
           <!-- Date Filters (desktop) -->
           <div class="pr-filters" style="margin-bottom:14px;">
             <button class="pr-filter-pill sc-date-pill <%= ppActiveFilter==='today'?'active':'' %>" data-pp-date="today" onclick="ppDateFilter('today',this)">اليوم (<%= ppCountToday %>)</button>
-            <button class="pr-filter-pill sc-date-pill <%= ppActiveFilter==='tomorrow'?'active':'' %>" data-pp-date="tomorrow" onclick="ppDateFilter('tomorrow',this)">غداً (<%= ppCountTomorrow %>)</button>
+            <button class="pr-filter-pill sc-date-pill <%= ppActiveFilter==='yesterday'?'active':'' %>" data-pp-date="yesterday" onclick="ppDateFilter('yesterday',this)">الأمس (<%= ppCountYesterday %>)</button>
             <button class="pr-filter-pill sc-date-pill <%= ppActiveFilter==='all'?'active':'' %>" data-pp-date="all" onclick="ppDateFilter('all',this)">الكل (<%= ppCountAll %>)</button>
           </div>
 
@@ -370,8 +370,8 @@
     function ppGetTodayKey() {
       return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
     }
-    function ppGetTomorrowKey() {
-      var d = new Date(); d.setDate(d.getDate() + 1);
+    function ppGetYesterdayKey() {
+      var d = new Date(); d.setDate(d.getDate() - 1);
       return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
     }
     function ppDateFilter(filter, btn) {
@@ -382,7 +382,7 @@
       document.querySelectorAll('[data-pp-date="' + filter + '"]').forEach(function(b){ b.classList.add('active'); });
       var targetKey;
       if (filter === 'today') targetKey = ppGetTodayKey();
-      else if (filter === 'tomorrow') targetKey = ppGetTomorrowKey();
+      else if (filter === 'yesterday') targetKey = ppGetYesterdayKey();
       // Filter mobile cards
       document.querySelectorAll('.pp-card[data-pp-date]').forEach(function(card){
         if (filter === 'all') { card.style.display = ''; }
