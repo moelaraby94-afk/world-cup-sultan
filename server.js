@@ -254,9 +254,8 @@ app.get('/logout', (req, res) => {
 app.get('/home', requireAuth, async (req, res) => {
   try {
     if (req.user.status !== 'approved') return res.redirect('/pending');
-    const publishedRounds = await db.getPublishedRounds();
     const allMatches = await db.getMatches();
-    const matches = allMatches.filter(m => publishedRounds.includes(m.round));
+    const matches = allMatches;
     const predictionsWithLock = await Promise.all(matches.map(async match => {
       const pred = await db.getPrediction(req.user.id, match.id);
       return { match, prediction: pred, locked: isPredictionLocked(match.start_at) };
@@ -330,9 +329,8 @@ app.get('/rules', requireAuth, async (req, res) => {
 app.get('/schedule', requireAuth, async (req, res) => {
   try {
     if (req.user.status !== 'approved') return res.redirect('/pending');
-    const publishedRounds = await db.getPublishedRounds();
     const allMatches = await db.getMatches();
-    const matches = allMatches.filter(m => publishedRounds.includes(m.round)).map(match => ({ ...match, locked: isPredictionLocked(match.start_at) }));
+    const matches = allMatches.map(match => ({ ...match, locked: isPredictionLocked(match.start_at) }));
     const leaderboard = await db.getLeaderboard();
     const userPredictions = await db.getUserPredictions(req.user.id);
     const allMatchesCount = allMatches.length;
@@ -350,9 +348,8 @@ app.get('/schedule', requireAuth, async (req, res) => {
 app.get('/news', requireAuth, async (req, res) => {
   try {
     if (req.user.status !== 'approved') return res.redirect('/pending');
-    const publishedRounds = await db.getPublishedRounds();
     const allMatches = await db.getMatches();
-    const matches = allMatches.filter(m => publishedRounds.includes(m.round));
+    const matches = allMatches;
 
     let groups = await db.getGroupStandings();
     if (!groups) {
