@@ -313,7 +313,7 @@
                   <div class="sc-match-meta">
                     <span class="sc-match-time">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                      <%= new Date(match.start_at).toLocaleString('ar-EG', { hour: '2-digit', minute: '2-digit' }) %>
+                      <%= new Date(match.start_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Riyadh' }) %>
                     </span>
                     <span class="sc-match-group"><%= match.stage %></span>
                   </div>

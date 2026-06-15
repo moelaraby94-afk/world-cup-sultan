@@ -189,7 +189,7 @@
                 </div>
                 <div class="mp-dtl-row">
                   <span class="mp-dtl-lbl">تاريخ التوقع</span>
-                  <span class="mp-dtl-val"><%= new Date(p.updated_at || p.start_at).toLocaleString('ar-EG') %></span>
+                  <span class="mp-dtl-val"><%= new Date(p.updated_at || p.start_at).toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' }) %></span>
                 </div>
                 <% if (ended) { %>
                 <div class="mp-dtl-row">
