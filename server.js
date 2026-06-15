@@ -686,12 +686,31 @@ app.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
     await Promise.all(matches.map(async m => {
       matchPredictions[m.id] = await db.getAllPredictionsForMatch(m.id);
     }));
+    // Compute missed predictions per user
+    var lockedPublishedMatches = matches.filter(function(m) {
+      return publishedRounds.includes(m.round) && isPredictionLocked(m.start_at);
+    });
+    var leaderboardWithMissed = leaderboard.map(function(entry) {
+      var lockedPredCount = 0;
+      var missedMatchNames = [];
+      lockedPublishedMatches.forEach(function(lm) {
+        var preds = matchPredictions[lm.id] || [];
+        var hasPred = preds.some(function(p) { return p.user_id === entry.id; });
+        if (hasPred) lockedPredCount++;
+        else missedMatchNames.push({ teamA: lm.teamA, teamB: lm.teamB });
+      });
+      return Object.assign({}, entry, {
+        missed_predictions: lockedPublishedMatches.length - lockedPredCount,
+        missed_match_names: missedMatchNames
+      });
+    });
+
     const groups = db.getGroups();
     const teamFlags = db.getTeamFlags();
     const activeTab = req.query.tab || 'players';
     const newsItems = await db.getNews();
     const allComments = await db.getAllComments();
-    res.render('dashboard', { user: req.user, matches, leaderboard, pendingUsers, allUsers, currentRound, publishedRounds, matchesByRound, visiblePredictions, hiddenPredictions, matchPredictions, groups, teamFlags, activeTab, newsItems, allComments, message: null });
+    res.render('dashboard', { user: req.user, matches, leaderboard: leaderboardWithMissed, pendingUsers, allUsers, currentRound, publishedRounds, matchesByRound, visiblePredictions, hiddenPredictions, matchPredictions, groups, teamFlags, activeTab, newsItems, allComments, message: null });
   } catch (err) {
     console.error('Dashboard error:', err);
     res.status(500).render('error', { message: 'حدث خطأ في تحميل لوحة التحكم' });

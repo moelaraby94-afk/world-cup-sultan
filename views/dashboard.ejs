@@ -191,6 +191,12 @@
       .db-players-grid { grid-template-columns:1fr; }
       .db-rounds-grid { grid-template-columns:1fr 1fr; }
     }
+    /* ===== MISSED PREDICTIONS BADGES ===== */
+    .mp-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:800; cursor:pointer; transition:all 0.15s; }
+    .mp-badge.mp-green { background:rgba(34,197,94,0.15); color:#16a34a; }
+    .mp-badge.mp-yellow { background:rgba(245,158,11,0.15); color:#d97706; }
+    .mp-badge.mp-red { background:rgba(239,68,68,0.15); color:#ef4444; }
+    .mp-badge:hover { opacity:0.8; transform:scale(1.05); }
   </style>
 </head>
 <body>
@@ -607,19 +613,37 @@
           <div class="card section-card">
             <table>
               <thead>
-                <tr><th>#</th><th>الاسم</th><th>المعرف</th><th>النقاط</th></tr>
+                <tr><th>#</th><th>الاسم</th><th>المعرف</th><th>النقاط</th><th>التوقعات المفقودة</th></tr>
               </thead>
               <tbody>
-                <% leaderboard.forEach(function(player, index) { %>
+                <% leaderboard.forEach(function(player, index) {
+                  var mp = player.missed_predictions || 0;
+                  var mpClass = mp === 0 ? 'mp-green' : (mp <= 2 ? 'mp-yellow' : 'mp-red');
+                  var mpLabel = mp === 0 ? '0 ✅' : mp + (mp <= 2 ? ' 🟡' : ' 🔴');
+                %>
                 <tr>
                   <td><strong><%= index + 1 %></strong></td>
                   <td><%= player.name %></td>
                   <td style="color:var(--text-secondary);font-size:0.85rem;">@<%= player.username %></td>
                   <td><strong style="color:var(--primary);"><%= player.total %></strong></td>
+                  <td>
+                    <span class="mp-badge <%= mpClass %>" style="cursor:<%= mp>0?'pointer':'default' %>;" onclick="<%= mp>0 ? \"showMissedPredictions('\" + escJsStr(player.name) + \"',\" + JSON.stringify(player.missed_match_names) + \")\" : '' %>"><%= mpLabel %></span>
+                  </td>
                 </tr>
                 <% }) %>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Missed Predictions Modal -->
+        <div id="missed-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);overflow-y:auto;padding:20px;" onclick="if(event.target===this)closeMissedModal()">
+          <div style="max-width:420px;margin:0 auto;background:var(--surface);border-radius:18px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <span id="missed-modal-title" style="font-weight:800;font-size:0.95rem;"></span>
+              <button onclick="closeMissedModal()" style="background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer;line-height:1;">&#x2715;</button>
+            </div>
+            <div id="missed-modal-body" style="display:flex;flex-direction:column;gap:8px;"></div>
           </div>
         </div>
 
@@ -1031,6 +1055,33 @@
       form.querySelector('[name="scoreB"]').value = '';
       form.submit();
     }
+
+    function escJsStr(str) {
+      if (!str) return '';
+      return str.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function showMissedPredictions(playerName, matches) {
+      document.getElementById('missed-modal-title').textContent = playerName + ' — المباريات المفقودة (' + matches.length + ')';
+      var body = document.getElementById('missed-modal-body');
+      if (!matches || matches.length === 0) {
+        body.innerHTML = '<div style="color:var(--text-secondary);font-size:0.85rem;text-align:center;padding:10px 0;">لا توجد مباريات مفقودة</div>';
+      } else {
+        body.innerHTML = matches.map(function(m){
+          return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.04);font-size:0.85rem;font-weight:700;color:var(--text);">' +
+            '<span style="color:#ef4444;font-size:1rem;">✗</span>' +
+            '<span>' + escHtml(m.teamA) + ' VS ' + escHtml(m.teamB) + '</span>' +
+          '</div>';
+        }).join('');
+      }
+      document.getElementById('missed-modal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    function closeMissedModal() {
+      document.getElementById('missed-modal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeMissedModal(); });
   </script>
 
 <%- include('partials/mobile-nav', { active: 'dashboard' }) %>
