@@ -35,189 +35,189 @@ function generateFixtures() {
   // ============================
 
   // يوم 11 يونيو (الخميس)
-  fixtures.push({ teamA: 'المكسيك', teamB: 'جنوب أفريقيا', stage: 'المجموعة A', round: 1, start: '2026-06-11T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'كوريا الجنوبية', teamB: 'التشيك', stage: 'المجموعة A', round: 1, start: '2026-06-12T01:00:00Z' }); // 10pm ET
+  fixtures.push({ teamA: 'المكسيك', teamB: 'جنوب أفريقيا', stage: 'المجموعة A', round: 1, start: '2026-06-11T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'كوريا الجنوبية', teamB: 'التشيك', stage: 'المجموعة A', round: 1, start: '2026-06-12T02:00:00Z' }); // 10pm ET
 
   // يوم 12 يونيو (الجمعة)
-  fixtures.push({ teamA: 'كندا', teamB: 'البوسنة والهرسك', stage: 'المجموعة B', round: 1, start: '2026-06-12T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'الولايات المتحدة', teamB: 'باراغواي', stage: 'المجموعة D', round: 1, start: '2026-06-13T00:00:00Z' }); // 9pm ET
+  fixtures.push({ teamA: 'كندا', teamB: 'البوسنة والهرسك', stage: 'المجموعة B', round: 1, start: '2026-06-12T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'الولايات المتحدة', teamB: 'باراغواي', stage: 'المجموعة D', round: 1, start: '2026-06-13T01:00:00Z' }); // 9pm ET
 
   // يوم 13 يونيو (السبت)
-  fixtures.push({ teamA: 'قطر', teamB: 'سويسرا', stage: 'المجموعة B', round: 1, start: '2026-06-13T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'البرازيل', teamB: 'المغرب', stage: 'المجموعة C', round: 1, start: '2026-06-13T21:00:00Z' }); // 6pm ET
-  fixtures.push({ teamA: 'هايتي', teamB: 'إسكتلندا', stage: 'المجموعة C', round: 1, start: '2026-06-14T00:00:00Z' }); // 9pm ET
-  fixtures.push({ teamA: 'أستراليا', teamB: 'تركيا', stage: 'المجموعة D', round: 1, start: '2026-06-14T03:00:00Z' }); // 12am ET (June 14)
+  fixtures.push({ teamA: 'قطر', teamB: 'سويسرا', stage: 'المجموعة B', round: 1, start: '2026-06-13T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'البرازيل', teamB: 'المغرب', stage: 'المجموعة C', round: 1, start: '2026-06-13T22:00:00Z' }); // 6pm ET
+  fixtures.push({ teamA: 'هايتي', teamB: 'إسكتلندا', stage: 'المجموعة C', round: 1, start: '2026-06-14T01:00:00Z' }); // 9pm ET
+  fixtures.push({ teamA: 'أستراليا', teamB: 'تركيا', stage: 'المجموعة D', round: 1, start: '2026-06-14T04:00:00Z' }); // 12am ET (June 14)
 
   // يوم 14 يونيو (الأحد)
-  fixtures.push({ teamA: 'ألمانيا', teamB: 'كوراساو', stage: 'المجموعة E', round: 1, start: '2026-06-14T16:00:00Z' }); // 1pm ET
-  fixtures.push({ teamA: 'هولندا', teamB: 'اليابان', stage: 'المجموعة F', round: 1, start: '2026-06-14T19:00:00Z' }); // 4pm ET
-  fixtures.push({ teamA: 'ساحل العاج', teamB: 'الإكوادور', stage: 'المجموعة E', round: 1, start: '2026-06-14T22:00:00Z' }); // 7pm ET
-  fixtures.push({ teamA: 'السويد', teamB: 'تونس', stage: 'المجموعة F', round: 1, start: '2026-06-15T01:00:00Z' }); // 10pm ET
+  fixtures.push({ teamA: 'ألمانيا', teamB: 'كوراساو', stage: 'المجموعة E', round: 1, start: '2026-06-14T17:00:00Z' }); // 1pm ET
+  fixtures.push({ teamA: 'هولندا', teamB: 'اليابان', stage: 'المجموعة F', round: 1, start: '2026-06-14T20:00:00Z' }); // 4pm ET
+  fixtures.push({ teamA: 'ساحل العاج', teamB: 'الإكوادور', stage: 'المجموعة E', round: 1, start: '2026-06-14T23:00:00Z' }); // 7pm ET
+  fixtures.push({ teamA: 'السويد', teamB: 'تونس', stage: 'المجموعة F', round: 1, start: '2026-06-15T02:00:00Z' }); // 10pm ET
 
   // يوم 15 يونيو (الإثنين)
-  fixtures.push({ teamA: 'إسبانيا', teamB: 'الرأس الأخضر', stage: 'المجموعة H', round: 1, start: '2026-06-15T16:00:00Z' }); // 1pm ET
-  fixtures.push({ teamA: 'بلجيكا', teamB: 'مصر', stage: 'المجموعة G', round: 1, start: '2026-06-15T21:00:00Z' }); // 6pm ET
-  fixtures.push({ teamA: 'السعودية', teamB: 'الأوروغواي', stage: 'المجموعة H', round: 1, start: '2026-06-15T21:00:00Z' }); // 6pm ET
-  fixtures.push({ teamA: 'إيران', teamB: 'نيوزيلندا', stage: 'المجموعة G', round: 1, start: '2026-06-16T03:00:00Z' }); // 12am ET (June 16)
+  fixtures.push({ teamA: 'إسبانيا', teamB: 'الرأس الأخضر', stage: 'المجموعة H', round: 1, start: '2026-06-15T16:00:00Z' }); // 12pm ET
+  fixtures.push({ teamA: 'بلجيكا', teamB: 'مصر', stage: 'المجموعة G', round: 1, start: '2026-06-15T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'السعودية', teamB: 'الأوروغواي', stage: 'المجموعة H', round: 1, start: '2026-06-15T22:00:00Z' }); // 6pm ET
+  fixtures.push({ teamA: 'إيران', teamB: 'نيوزيلندا', stage: 'المجموعة G', round: 1, start: '2026-06-16T01:00:00Z' }); // 9pm ET (June 15)
 
   // يوم 16 يونيو (الثلاثاء)
-  fixtures.push({ teamA: 'فرنسا', teamB: 'السنغال', stage: 'المجموعة I', round: 1, start: '2026-06-16T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'العراق', teamB: 'النرويج', stage: 'المجموعة I', round: 1, start: '2026-06-16T21:00:00Z' }); // 6pm ET
-  fixtures.push({ teamA: 'الأرجنتين', teamB: 'الجزائر', stage: 'المجموعة J', round: 1, start: '2026-06-17T00:00:00Z' }); // 9pm ET
-  fixtures.push({ teamA: 'النمسا', teamB: 'الأردن', stage: 'المجموعة J', round: 1, start: '2026-06-17T03:00:00Z' }); // 12am ET (June 17)
+  fixtures.push({ teamA: 'فرنسا', teamB: 'السنغال', stage: 'المجموعة I', round: 1, start: '2026-06-16T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'العراق', teamB: 'النرويج', stage: 'المجموعة I', round: 1, start: '2026-06-16T22:00:00Z' }); // 6pm ET
+  fixtures.push({ teamA: 'الأرجنتين', teamB: 'الجزائر', stage: 'المجموعة J', round: 1, start: '2026-06-17T01:00:00Z' }); // 9pm ET
+  fixtures.push({ teamA: 'النمسا', teamB: 'الأردن', stage: 'المجموعة J', round: 1, start: '2026-06-17T04:00:00Z' }); // 12am ET (June 17)
 
   // يوم 17 يونيو (الأربعاء)
-  fixtures.push({ teamA: 'البرتغال', teamB: 'الكونغو الديمقراطية', stage: 'المجموعة K', round: 1, start: '2026-06-17T16:00:00Z' }); // 1pm ET
-  fixtures.push({ teamA: 'إنجلترا', teamB: 'كرواتيا', stage: 'المجموعة L', round: 1, start: '2026-06-17T19:00:00Z' }); // 4pm ET
-  fixtures.push({ teamA: 'غانا', teamB: 'بنما', stage: 'المجموعة L', round: 1, start: '2026-06-17T22:00:00Z' }); // 7pm ET
-  fixtures.push({ teamA: 'أوزبكستان', teamB: 'كولومبيا', stage: 'المجموعة K', round: 1, start: '2026-06-18T01:00:00Z' }); // 10pm ET
+  fixtures.push({ teamA: 'البرتغال', teamB: 'الكونغو الديمقراطية', stage: 'المجموعة K', round: 1, start: '2026-06-17T17:00:00Z' }); // 1pm ET
+  fixtures.push({ teamA: 'إنجلترا', teamB: 'كرواتيا', stage: 'المجموعة L', round: 1, start: '2026-06-17T20:00:00Z' }); // 4pm ET
+  fixtures.push({ teamA: 'غانا', teamB: 'بنما', stage: 'المجموعة L', round: 1, start: '2026-06-17T23:00:00Z' }); // 7pm ET
+  fixtures.push({ teamA: 'أوزبكستان', teamB: 'كولومبيا', stage: 'المجموعة K', round: 1, start: '2026-06-18T02:00:00Z' }); // 10pm ET
 
   // ============================
   // الجولة الثانية (Round 2)
   // ============================
 
   // يوم 18 يونيو (الخميس)
-  fixtures.push({ teamA: 'التشيك', teamB: 'جنوب أفريقيا', stage: 'المجموعة A', round: 2, start: '2026-06-18T15:00:00Z' }); // 12pm ET
-  fixtures.push({ teamA: 'سويسرا', teamB: 'البوسنة والهرسك', stage: 'المجموعة B', round: 2, start: '2026-06-18T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'كندا', teamB: 'قطر', stage: 'المجموعة B', round: 2, start: '2026-06-18T21:00:00Z' }); // 6pm ET
-  fixtures.push({ teamA: 'المكسيك', teamB: 'كوريا الجنوبية', stage: 'المجموعة A', round: 2, start: '2026-06-19T02:00:00Z' }); // 11pm ET
+  fixtures.push({ teamA: 'التشيك', teamB: 'جنوب أفريقيا', stage: 'المجموعة A', round: 2, start: '2026-06-18T16:00:00Z' }); // 12pm ET
+  fixtures.push({ teamA: 'سويسرا', teamB: 'البوسنة والهرسك', stage: 'المجموعة B', round: 2, start: '2026-06-18T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'كندا', teamB: 'قطر', stage: 'المجموعة B', round: 2, start: '2026-06-18T22:00:00Z' }); // 6pm ET
+  fixtures.push({ teamA: 'المكسيك', teamB: 'كوريا الجنوبية', stage: 'المجموعة A', round: 2, start: '2026-06-19T01:00:00Z' }); // 9pm ET
 
   // يوم 19 يونيو (الجمعة)
-  fixtures.push({ teamA: 'الولايات المتحدة', teamB: 'أستراليا', stage: 'المجموعة D', round: 2, start: '2026-06-19T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'إسكتلندا', teamB: 'المغرب', stage: 'المجموعة C', round: 2, start: '2026-06-19T21:00:00Z' }); // 6pm ET
-  fixtures.push({ teamA: 'البرازيل', teamB: 'هايتي', stage: 'المجموعة C', round: 2, start: '2026-06-20T00:00:00Z' }); // 9pm ET
-  fixtures.push({ teamA: 'تركيا', teamB: 'باراغواي', stage: 'المجموعة D', round: 2, start: '2026-06-20T03:00:00Z' }); // 12am ET (June 20)
+  fixtures.push({ teamA: 'الولايات المتحدة', teamB: 'أستراليا', stage: 'المجموعة D', round: 2, start: '2026-06-19T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'إسكتلندا', teamB: 'المغرب', stage: 'المجموعة C', round: 2, start: '2026-06-19T22:00:00Z' }); // 6pm ET
+  fixtures.push({ teamA: 'البرازيل', teamB: 'هايتي', stage: 'المجموعة C', round: 2, start: '2026-06-20T00:30:00Z' }); // 8:30pm ET
+  fixtures.push({ teamA: 'تركيا', teamB: 'باراغواي', stage: 'المجموعة D', round: 2, start: '2026-06-20T03:00:00Z' }); // 11pm ET (June 19)
 
   // يوم 20 يونيو (السبت)
-  fixtures.push({ teamA: 'هولندا', teamB: 'السويد', stage: 'المجموعة F', round: 2, start: '2026-06-20T16:00:00Z' }); // 1pm ET
-  fixtures.push({ teamA: 'ألمانيا', teamB: 'ساحل العاج', stage: 'المجموعة E', round: 2, start: '2026-06-20T19:00:00Z' }); // 4pm ET
-  fixtures.push({ teamA: 'الإكوادور', teamB: 'كوراساو', stage: 'المجموعة E', round: 2, start: '2026-06-20T23:00:00Z' }); // 8pm ET
-  fixtures.push({ teamA: 'تونس', teamB: 'اليابان', stage: 'المجموعة F', round: 2, start: '2026-06-21T03:00:00Z' }); // 12am ET (June 21)
+  fixtures.push({ teamA: 'هولندا', teamB: 'السويد', stage: 'المجموعة F', round: 2, start: '2026-06-20T17:00:00Z' }); // 1pm ET
+  fixtures.push({ teamA: 'ألمانيا', teamB: 'ساحل العاج', stage: 'المجموعة E', round: 2, start: '2026-06-20T20:00:00Z' }); // 4pm ET
+  fixtures.push({ teamA: 'الإكوادور', teamB: 'كوراساو', stage: 'المجموعة E', round: 2, start: '2026-06-21T00:00:00Z' }); // 8pm ET
+  fixtures.push({ teamA: 'تونس', teamB: 'اليابان', stage: 'المجموعة F', round: 2, start: '2026-06-21T04:00:00Z' }); // 12am ET (June 21)
 
   // يوم 21 يونيو (الأحد)
-  fixtures.push({ teamA: 'إسبانيا', teamB: 'السعودية', stage: 'المجموعة H', round: 2, start: '2026-06-21T15:00:00Z' }); // 12pm ET
-  fixtures.push({ teamA: 'بلجيكا', teamB: 'إيران', stage: 'المجموعة G', round: 2, start: '2026-06-21T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'الأوروغواي', teamB: 'الرأس الأخضر', stage: 'المجموعة H', round: 2, start: '2026-06-21T21:00:00Z' }); // 6pm ET
-  fixtures.push({ teamA: 'نيوزيلندا', teamB: 'مصر', stage: 'المجموعة G', round: 2, start: '2026-06-22T00:00:00Z' }); // 9pm ET
+  fixtures.push({ teamA: 'إسبانيا', teamB: 'السعودية', stage: 'المجموعة H', round: 2, start: '2026-06-21T16:00:00Z' }); // 12pm ET
+  fixtures.push({ teamA: 'بلجيكا', teamB: 'إيران', stage: 'المجموعة G', round: 2, start: '2026-06-21T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'الأوروغواي', teamB: 'الرأس الأخضر', stage: 'المجموعة H', round: 2, start: '2026-06-21T22:00:00Z' }); // 6pm ET
+  fixtures.push({ teamA: 'نيوزيلندا', teamB: 'مصر', stage: 'المجموعة G', round: 2, start: '2026-06-22T01:00:00Z' }); // 9pm ET
 
   // يوم 22 يونيو (الإثنين)
-  fixtures.push({ teamA: 'الأرجنتين', teamB: 'النمسا', stage: 'المجموعة J', round: 2, start: '2026-06-22T16:00:00Z' }); // 1pm ET
-  fixtures.push({ teamA: 'فرنسا', teamB: 'العراق', stage: 'المجموعة I', round: 2, start: '2026-06-22T20:00:00Z' }); // 5pm ET
-  fixtures.push({ teamA: 'النرويج', teamB: 'السنغال', stage: 'المجموعة I', round: 2, start: '2026-06-22T23:00:00Z' }); // 8pm ET
-  fixtures.push({ teamA: 'الأردن', teamB: 'الجزائر', stage: 'المجموعة J', round: 2, start: '2026-06-23T02:00:00Z' }); // 11pm ET
+  fixtures.push({ teamA: 'الأرجنتين', teamB: 'النمسا', stage: 'المجموعة J', round: 2, start: '2026-06-22T17:00:00Z' }); // 1pm ET
+  fixtures.push({ teamA: 'فرنسا', teamB: 'العراق', stage: 'المجموعة I', round: 2, start: '2026-06-22T21:00:00Z' }); // 5pm ET
+  fixtures.push({ teamA: 'النرويج', teamB: 'السنغال', stage: 'المجموعة I', round: 2, start: '2026-06-23T00:00:00Z' }); // 8pm ET
+  fixtures.push({ teamA: 'الأردن', teamB: 'الجزائر', stage: 'المجموعة J', round: 2, start: '2026-06-23T03:00:00Z' }); // 11pm ET
 
   // يوم 23 يونيو (الثلاثاء)
-  fixtures.push({ teamA: 'البرتغال', teamB: 'أوزبكستان', stage: 'المجموعة K', round: 2, start: '2026-06-23T16:00:00Z' }); // 1pm ET
-  fixtures.push({ teamA: 'إنجلترا', teamB: 'غانا', stage: 'المجموعة L', round: 2, start: '2026-06-23T19:00:00Z' }); // 4pm ET
-  fixtures.push({ teamA: 'بنما', teamB: 'كرواتيا', stage: 'المجموعة L', round: 2, start: '2026-06-23T22:00:00Z' }); // 7pm ET
-  fixtures.push({ teamA: 'كولومبيا', teamB: 'الكونغو الديمقراطية', stage: 'المجموعة K', round: 2, start: '2026-06-24T01:00:00Z' }); // 10pm ET
+  fixtures.push({ teamA: 'البرتغال', teamB: 'أوزبكستان', stage: 'المجموعة K', round: 2, start: '2026-06-23T17:00:00Z' }); // 1pm ET
+  fixtures.push({ teamA: 'إنجلترا', teamB: 'غانا', stage: 'المجموعة L', round: 2, start: '2026-06-23T20:00:00Z' }); // 4pm ET
+  fixtures.push({ teamA: 'بنما', teamB: 'كرواتيا', stage: 'المجموعة L', round: 2, start: '2026-06-23T23:00:00Z' }); // 7pm ET
+  fixtures.push({ teamA: 'كولومبيا', teamB: 'الكونغو الديمقراطية', stage: 'المجموعة K', round: 2, start: '2026-06-24T02:00:00Z' }); // 10pm ET
 
   // ============================
   // الجولة الثالثة (Round 3)
   // ============================
 
   // يوم 24 يونيو (الأربعاء)
-  fixtures.push({ teamA: 'سويسرا', teamB: 'كندا', stage: 'المجموعة B', round: 3, start: '2026-06-24T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'البوسنة والهرسك', teamB: 'قطر', stage: 'المجموعة B', round: 3, start: '2026-06-24T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'إسكتلندا', teamB: 'البرازيل', stage: 'المجموعة C', round: 3, start: '2026-06-24T21:00:00Z' }); // 6pm ET
-  fixtures.push({ teamA: 'المغرب', teamB: 'هايتي', stage: 'المجموعة C', round: 3, start: '2026-06-24T21:00:00Z' }); // 6pm ET
-  fixtures.push({ teamA: 'التشيك', teamB: 'المكسيك', stage: 'المجموعة A', round: 3, start: '2026-06-25T00:00:00Z' }); // 9pm ET
-  fixtures.push({ teamA: 'جنوب أفريقيا', teamB: 'كوريا الجنوبية', stage: 'المجموعة A', round: 3, start: '2026-06-25T00:00:00Z' }); // 9pm ET
+  fixtures.push({ teamA: 'سويسرا', teamB: 'كندا', stage: 'المجموعة B', round: 3, start: '2026-06-24T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'البوسنة والهرسك', teamB: 'قطر', stage: 'المجموعة B', round: 3, start: '2026-06-24T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'إسكتلندا', teamB: 'البرازيل', stage: 'المجموعة C', round: 3, start: '2026-06-24T22:00:00Z' }); // 6pm ET
+  fixtures.push({ teamA: 'المغرب', teamB: 'هايتي', stage: 'المجموعة C', round: 3, start: '2026-06-24T22:00:00Z' }); // 6pm ET
+  fixtures.push({ teamA: 'التشيك', teamB: 'المكسيك', stage: 'المجموعة A', round: 3, start: '2026-06-25T01:00:00Z' }); // 9pm ET
+  fixtures.push({ teamA: 'جنوب أفريقيا', teamB: 'كوريا الجنوبية', stage: 'المجموعة A', round: 3, start: '2026-06-25T01:00:00Z' }); // 9pm ET
 
   // يوم 25 يونيو (الخميس)
-  fixtures.push({ teamA: 'الإكوادور', teamB: 'ألمانيا', stage: 'المجموعة E', round: 3, start: '2026-06-25T19:00:00Z' }); // 4pm ET
-  fixtures.push({ teamA: 'كوراساو', teamB: 'ساحل العاج', stage: 'المجموعة E', round: 3, start: '2026-06-25T19:00:00Z' }); // 4pm ET
-  fixtures.push({ teamA: 'اليابان', teamB: 'السويد', stage: 'المجموعة F', round: 3, start: '2026-06-25T22:00:00Z' }); // 7pm ET
-  fixtures.push({ teamA: 'تونس', teamB: 'هولندا', stage: 'المجموعة F', round: 3, start: '2026-06-25T22:00:00Z' }); // 7pm ET
-  fixtures.push({ teamA: 'تركيا', teamB: 'الولايات المتحدة', stage: 'المجموعة D', round: 3, start: '2026-06-26T01:00:00Z' }); // 10pm ET
-  fixtures.push({ teamA: 'باراغواي', teamB: 'أستراليا', stage: 'المجموعة D', round: 3, start: '2026-06-26T01:00:00Z' }); // 10pm ET
+  fixtures.push({ teamA: 'الإكوادور', teamB: 'ألمانيا', stage: 'المجموعة E', round: 3, start: '2026-06-25T20:00:00Z' }); // 4pm ET
+  fixtures.push({ teamA: 'كوراساو', teamB: 'ساحل العاج', stage: 'المجموعة E', round: 3, start: '2026-06-25T20:00:00Z' }); // 4pm ET
+  fixtures.push({ teamA: 'اليابان', teamB: 'السويد', stage: 'المجموعة F', round: 3, start: '2026-06-25T23:00:00Z' }); // 7pm ET
+  fixtures.push({ teamA: 'تونس', teamB: 'هولندا', stage: 'المجموعة F', round: 3, start: '2026-06-25T23:00:00Z' }); // 7pm ET
+  fixtures.push({ teamA: 'تركيا', teamB: 'الولايات المتحدة', stage: 'المجموعة D', round: 3, start: '2026-06-26T02:00:00Z' }); // 10pm ET
+  fixtures.push({ teamA: 'باراغواي', teamB: 'أستراليا', stage: 'المجموعة D', round: 3, start: '2026-06-26T02:00:00Z' }); // 10pm ET
 
   // يوم 26 يونيو (الجمعة)
-  fixtures.push({ teamA: 'النرويج', teamB: 'فرنسا', stage: 'المجموعة I', round: 3, start: '2026-06-26T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'السنغال', teamB: 'العراق', stage: 'المجموعة I', round: 3, start: '2026-06-26T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'الرأس الأخضر', teamB: 'السعودية', stage: 'المجموعة H', round: 3, start: '2026-06-26T23:00:00Z' }); // 8pm ET
-  fixtures.push({ teamA: 'الأوروغواي', teamB: 'إسبانيا', stage: 'المجموعة H', round: 3, start: '2026-06-26T23:00:00Z' }); // 8pm ET
-  fixtures.push({ teamA: 'مصر', teamB: 'إيران', stage: 'المجموعة G', round: 3, start: '2026-06-27T02:00:00Z' }); // 11pm ET
-  fixtures.push({ teamA: 'نيوزيلندا', teamB: 'بلجيكا', stage: 'المجموعة G', round: 3, start: '2026-06-27T02:00:00Z' }); // 11pm ET
+  fixtures.push({ teamA: 'النرويج', teamB: 'فرنسا', stage: 'المجموعة I', round: 3, start: '2026-06-26T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'السنغال', teamB: 'العراق', stage: 'المجموعة I', round: 3, start: '2026-06-26T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'الرأس الأخضر', teamB: 'السعودية', stage: 'المجموعة H', round: 3, start: '2026-06-27T00:00:00Z' }); // 8pm ET
+  fixtures.push({ teamA: 'الأوروغواي', teamB: 'إسبانيا', stage: 'المجموعة H', round: 3, start: '2026-06-27T00:00:00Z' }); // 8pm ET
+  fixtures.push({ teamA: 'مصر', teamB: 'إيران', stage: 'المجموعة G', round: 3, start: '2026-06-27T03:00:00Z' }); // 11pm ET
+  fixtures.push({ teamA: 'نيوزيلندا', teamB: 'بلجيكا', stage: 'المجموعة G', round: 3, start: '2026-06-27T03:00:00Z' }); // 11pm ET
 
   // يوم 27 يونيو (السبت)
-  fixtures.push({ teamA: 'بنما', teamB: 'إنجلترا', stage: 'المجموعة L', round: 3, start: '2026-06-27T20:00:00Z' }); // 5pm ET
-  fixtures.push({ teamA: 'كرواتيا', teamB: 'غانا', stage: 'المجموعة L', round: 3, start: '2026-06-27T20:00:00Z' }); // 5pm ET
-  fixtures.push({ teamA: 'كولومبيا', teamB: 'البرتغال', stage: 'المجموعة K', round: 3, start: '2026-06-27T22:30:00Z' }); // 7:30pm ET
-  fixtures.push({ teamA: 'الكونغو الديمقراطية', teamB: 'أوزبكستان', stage: 'المجموعة K', round: 3, start: '2026-06-27T22:30:00Z' }); // 7:30pm ET
-  fixtures.push({ teamA: 'الجزائر', teamB: 'النمسا', stage: 'المجموعة J', round: 3, start: '2026-06-28T01:00:00Z' }); // 10pm ET
-  fixtures.push({ teamA: 'الأردن', teamB: 'الأرجنتين', stage: 'المجموعة J', round: 3, start: '2026-06-28T01:00:00Z' }); // 10pm ET
+  fixtures.push({ teamA: 'بنما', teamB: 'إنجلترا', stage: 'المجموعة L', round: 3, start: '2026-06-27T21:00:00Z' }); // 5pm ET
+  fixtures.push({ teamA: 'كرواتيا', teamB: 'غانا', stage: 'المجموعة L', round: 3, start: '2026-06-27T21:00:00Z' }); // 5pm ET
+  fixtures.push({ teamA: 'كولومبيا', teamB: 'البرتغال', stage: 'المجموعة K', round: 3, start: '2026-06-27T23:30:00Z' }); // 7:30pm ET
+  fixtures.push({ teamA: 'الكونغو الديمقراطية', teamB: 'أوزبكستان', stage: 'المجموعة K', round: 3, start: '2026-06-27T23:30:00Z' }); // 7:30pm ET
+  fixtures.push({ teamA: 'الجزائر', teamB: 'النمسا', stage: 'المجموعة J', round: 3, start: '2026-06-28T02:00:00Z' }); // 10pm ET
+  fixtures.push({ teamA: 'الأردن', teamB: 'الأرجنتين', stage: 'المجموعة J', round: 3, start: '2026-06-28T02:00:00Z' }); // 10pm ET
 
   // ============================
   // دور الـ 32 (Round 4) — 16 مباراة
   // ============================
 
   // يوم 28 يونيو (الأحد)
-  fixtures.push({ teamA: 'ثاني A', teamB: 'ثاني B', stage: 'دور الـ 32', round: 4, start: '2026-06-28T18:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'ثاني A', teamB: 'ثاني B', stage: 'دور الـ 32', round: 4, start: '2026-06-28T19:00:00Z' }); // 3pm ET
 
   // يوم 29 يونيو (الإثنين)
-  fixtures.push({ teamA: 'أول C', teamB: 'ثاني F', stage: 'دور الـ 32', round: 4, start: '2026-06-29T16:00:00Z' }); // 1pm ET
-  fixtures.push({ teamA: 'أول E', teamB: 'ثالث ABCDF', stage: 'دور الـ 32', round: 4, start: '2026-06-29T19:30:00Z' }); // 4:30pm ET
-  fixtures.push({ teamA: 'أول F', teamB: 'ثاني C', stage: 'دور الـ 32', round: 4, start: '2026-06-30T00:00:00Z' }); // 9pm ET
+  fixtures.push({ teamA: 'أول C', teamB: 'ثاني F', stage: 'دور الـ 32', round: 4, start: '2026-06-29T17:00:00Z' }); // 1pm ET
+  fixtures.push({ teamA: 'أول E', teamB: 'ثالث ABCDF', stage: 'دور الـ 32', round: 4, start: '2026-06-29T20:30:00Z' }); // 4:30pm ET
+  fixtures.push({ teamA: 'أول F', teamB: 'ثاني C', stage: 'دور الـ 32', round: 4, start: '2026-06-30T01:00:00Z' }); // 9pm ET
 
   // يوم 30 يونيو (الثلاثاء)
-  fixtures.push({ teamA: 'ثاني E', teamB: 'ثاني I', stage: 'دور الـ 32', round: 4, start: '2026-06-30T16:00:00Z' }); // 1pm ET
-  fixtures.push({ teamA: 'أول I', teamB: 'ثالث CDFGH', stage: 'دور الـ 32', round: 4, start: '2026-06-30T20:00:00Z' }); // 5pm ET
-  fixtures.push({ teamA: 'أول A', teamB: 'ثالث CEFHI', stage: 'دور الـ 32', round: 4, start: '2026-07-01T00:00:00Z' }); // 9pm ET
+  fixtures.push({ teamA: 'ثاني E', teamB: 'ثاني I', stage: 'دور الـ 32', round: 4, start: '2026-06-30T17:00:00Z' }); // 1pm ET
+  fixtures.push({ teamA: 'أول I', teamB: 'ثالث CDFGH', stage: 'دور الـ 32', round: 4, start: '2026-06-30T21:00:00Z' }); // 5pm ET
+  fixtures.push({ teamA: 'أول A', teamB: 'ثالث CEFHI', stage: 'دور الـ 32', round: 4, start: '2026-07-01T01:00:00Z' }); // 9pm ET
 
   // يوم 1 يوليو (الأربعاء)
-  fixtures.push({ teamA: 'أول L', teamB: 'ثالث EHIJK', stage: 'دور الـ 32', round: 4, start: '2026-07-01T15:00:00Z' }); // 12pm ET
-  fixtures.push({ teamA: 'أول G', teamB: 'ثالث AEHIJ', stage: 'دور الـ 32', round: 4, start: '2026-07-01T19:00:00Z' }); // 4pm ET
-  fixtures.push({ teamA: 'أول D', teamB: 'ثالث BEFIJ', stage: 'دور الـ 32', round: 4, start: '2026-07-01T23:00:00Z' }); // 8pm ET
+  fixtures.push({ teamA: 'أول L', teamB: 'ثالث EHIJK', stage: 'دور الـ 32', round: 4, start: '2026-07-01T16:00:00Z' }); // 12pm ET
+  fixtures.push({ teamA: 'أول G', teamB: 'ثالث AEHIJ', stage: 'دور الـ 32', round: 4, start: '2026-07-01T20:00:00Z' }); // 4pm ET
+  fixtures.push({ teamA: 'أول D', teamB: 'ثالث BEFIJ', stage: 'دور الـ 32', round: 4, start: '2026-07-02T00:00:00Z' }); // 8pm ET
 
   // يوم 2 يوليو (الخميس)
-  fixtures.push({ teamA: 'أول H', teamB: 'ثاني J', stage: 'دور الـ 32', round: 4, start: '2026-07-02T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'ثاني K', teamB: 'ثاني L', stage: 'دور الـ 32', round: 4, start: '2026-07-02T22:00:00Z' }); // 7pm ET
-  fixtures.push({ teamA: 'أول B', teamB: 'ثالث EFGIJ', stage: 'دور الـ 32', round: 4, start: '2026-07-03T02:00:00Z' }); // 11pm ET
+  fixtures.push({ teamA: 'أول H', teamB: 'ثاني J', stage: 'دور الـ 32', round: 4, start: '2026-07-02T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'ثاني K', teamB: 'ثاني L', stage: 'دور الـ 32', round: 4, start: '2026-07-02T23:00:00Z' }); // 7pm ET
+  fixtures.push({ teamA: 'أول B', teamB: 'ثالث EFGIJ', stage: 'دور الـ 32', round: 4, start: '2026-07-03T03:00:00Z' }); // 11pm ET
 
   // يوم 3 يوليو (الجمعة)
-  fixtures.push({ teamA: 'ثاني D', teamB: 'ثاني G', stage: 'دور الـ 32', round: 4, start: '2026-07-03T17:00:00Z' }); // 2pm ET
-  fixtures.push({ teamA: 'أول J', teamB: 'ثاني H', stage: 'دور الـ 32', round: 4, start: '2026-07-03T21:00:00Z' }); // 6pm ET
-  fixtures.push({ teamA: 'أول K', teamB: 'ثالث DEIJL', stage: 'دور الـ 32', round: 4, start: '2026-07-04T00:30:00Z' }); // 9:30pm ET
+  fixtures.push({ teamA: 'ثاني D', teamB: 'ثاني G', stage: 'دور الـ 32', round: 4, start: '2026-07-03T18:00:00Z' }); // 2pm ET
+  fixtures.push({ teamA: 'أول J', teamB: 'ثاني H', stage: 'دور الـ 32', round: 4, start: '2026-07-03T22:00:00Z' }); // 6pm ET
+  fixtures.push({ teamA: 'أول K', teamB: 'ثالث DEIJL', stage: 'دور الـ 32', round: 4, start: '2026-07-04T01:30:00Z' }); // 9:30pm ET
 
   // ============================
   // دور الـ 16 (Round 5) — 8 مباريات
   // ============================
 
   // يوم 4 يوليو (السبت)
-  fixtures.push({ teamA: 'فائز م49', teamB: 'فائز م50', stage: 'دور الـ 16', round: 5, start: '2026-07-04T16:00:00Z' }); // 1pm ET
-  fixtures.push({ teamA: 'فائز م53', teamB: 'فائز م54', stage: 'دور الـ 16', round: 5, start: '2026-07-04T20:00:00Z' }); // 5pm ET
+  fixtures.push({ teamA: 'فائز م49', teamB: 'فائز م50', stage: 'دور الـ 16', round: 5, start: '2026-07-04T17:00:00Z' }); // 1pm ET
+  fixtures.push({ teamA: 'فائز م53', teamB: 'فائز م54', stage: 'دور الـ 16', round: 5, start: '2026-07-04T21:00:00Z' }); // 5pm ET
 
   // يوم 5 يوليو (الأحد)
-  fixtures.push({ teamA: 'فائز م51', teamB: 'فائز م52', stage: 'دور الـ 16', round: 5, start: '2026-07-05T19:00:00Z' }); // 4pm ET
-  fixtures.push({ teamA: 'فائز م55', teamB: 'فائز م56', stage: 'دور الـ 16', round: 5, start: '2026-07-05T23:00:00Z' }); // 8pm ET
+  fixtures.push({ teamA: 'فائز م51', teamB: 'فائز م52', stage: 'دور الـ 16', round: 5, start: '2026-07-05T20:00:00Z' }); // 4pm ET
+  fixtures.push({ teamA: 'فائز م55', teamB: 'فائز م56', stage: 'دور الـ 16', round: 5, start: '2026-07-06T00:00:00Z' }); // 8pm ET
 
   // يوم 6 يوليو (الإثنين)
-  fixtures.push({ teamA: 'فائز م57', teamB: 'فائز م58', stage: 'دور الـ 16', round: 5, start: '2026-07-06T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'فائز م59', teamB: 'فائز م60', stage: 'دور الـ 16', round: 5, start: '2026-07-06T20:00:00Z' }); // 5pm ET
+  fixtures.push({ teamA: 'فائز م57', teamB: 'فائز م58', stage: 'دور الـ 16', round: 5, start: '2026-07-06T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'فائز م59', teamB: 'فائز م60', stage: 'دور الـ 16', round: 5, start: '2026-07-06T21:00:00Z' }); // 5pm ET
 
   // يوم 7 يوليو (الثلاثاء)
-  fixtures.push({ teamA: 'فائز م61', teamB: 'فائز م62', stage: 'دور الـ 16', round: 5, start: '2026-07-07T15:00:00Z' }); // 12pm ET
-  fixtures.push({ teamA: 'فائز م63', teamB: 'فائز م64', stage: 'دور الـ 16', round: 5, start: '2026-07-07T19:00:00Z' }); // 4pm ET
+  fixtures.push({ teamA: 'فائز م61', teamB: 'فائز م62', stage: 'دور الـ 16', round: 5, start: '2026-07-07T16:00:00Z' }); // 12pm ET
+  fixtures.push({ teamA: 'فائز م63', teamB: 'فائز م64', stage: 'دور الـ 16', round: 5, start: '2026-07-07T20:00:00Z' }); // 4pm ET
 
   // ============================
   // ربع النهائي (Round 6) — 4 مباريات
   // ============================
-  fixtures.push({ teamA: 'فائز ثمن 1', teamB: 'فائز ثمن 2', stage: 'ربع النهائي', round: 6, start: '2026-07-09T19:00:00Z' }); // 4pm ET
-  fixtures.push({ teamA: 'فائز ثمن 3', teamB: 'فائز ثمن 4', stage: 'ربع النهائي', round: 6, start: '2026-07-10T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'فائز ثمن 5', teamB: 'فائز ثمن 6', stage: 'ربع النهائي', round: 6, start: '2026-07-11T20:00:00Z' }); // 5pm ET
-  fixtures.push({ teamA: 'فائز ثمن 7', teamB: 'فائز ثمن 8', stage: 'ربع النهائي', round: 6, start: '2026-07-12T00:00:00Z' }); // 9pm ET
+  fixtures.push({ teamA: 'فائز ثمن 1', teamB: 'فائز ثمن 2', stage: 'ربع النهائي', round: 6, start: '2026-07-09T20:00:00Z' }); // 4pm ET
+  fixtures.push({ teamA: 'فائز ثمن 3', teamB: 'فائز ثمن 4', stage: 'ربع النهائي', round: 6, start: '2026-07-10T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'فائز ثمن 5', teamB: 'فائز ثمن 6', stage: 'ربع النهائي', round: 6, start: '2026-07-11T21:00:00Z' }); // 5pm ET
+  fixtures.push({ teamA: 'فائز ثمن 7', teamB: 'فائز ثمن 8', stage: 'ربع النهائي', round: 6, start: '2026-07-12T01:00:00Z' }); // 9pm ET
 
   // ============================
   // نصف النهائي (Round 7) — 2 مباراتين
   // ============================
-  fixtures.push({ teamA: 'فائز ربع 1', teamB: 'فائز ربع 2', stage: 'نصف النهائي', round: 7, start: '2026-07-14T18:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'فائز ربع 3', teamB: 'فائز ربع 4', stage: 'نصف النهائي', round: 7, start: '2026-07-15T18:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'فائز ربع 1', teamB: 'فائز ربع 2', stage: 'نصف النهائي', round: 7, start: '2026-07-14T19:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'فائز ربع 3', teamB: 'فائز ربع 4', stage: 'نصف النهائي', round: 7, start: '2026-07-15T19:00:00Z' }); // 3pm ET
 
   // ============================
   // النهائي (Round 8) — مباراة واحدة
   // ============================
-  fixtures.push({ teamA: 'فائز نصف 1', teamB: 'فائز نصف 2', stage: 'النهائي', round: 8, start: '2026-07-19T18:00:00Z' }); // 3pm ET
+  fixtures.push({ teamA: 'فائز نصف 1', teamB: 'فائز نصف 2', stage: 'النهائي', round: 8, start: '2026-07-19T19:00:00Z' }); // 3pm ET
 
   return fixtures;
 }
@@ -293,13 +293,28 @@ async function init() {
       await client.query("ALTER TABLE matches ADD COLUMN round INTEGER NOT NULL DEFAULT 1");
     }
 
-    // Migration: fix timezone — subtract 1 hour from all match times
-    const tzMigrationCheck = await client.query("SELECT value FROM settings WHERE key = 'tz_migration_done'");
-    if (tzMigrationCheck.rows.length === 0) {
-      await client.query("UPDATE matches SET start_at = start_at - INTERVAL '1 hour'");
-      await client.query("INSERT INTO settings (key, value) VALUES ('tz_migration_done', '1')");
-      console.log('Migration: subtracted 1 hour from all match times (timezone fix)');
+    // Migration: restore all match times (revert old -1h, then fix 6 specific errors)
+    const tzFixCheck = await client.query("SELECT value FROM settings WHERE key = 'tz_fix_v2'");
+    if (tzFixCheck.rows.length === 0) {
+      // Step 1: restore all matches by +1h (undoes the wrong -1h migration)
+      await client.query("UPDATE matches SET start_at = start_at + INTERVAL '1 hour'");
+      // Step 2: fix 6 specific matches with additional wrong times
+      const fixes = [
+        { a: 'إسبانيا', b: 'الرأس الأخضر', r: 1, t: '2026-06-15T16:00:00Z' },
+        { a: 'بلجيكا', b: 'مصر', r: 1, t: '2026-06-15T19:00:00Z' },
+        { a: 'إيران', b: 'نيوزيلندا', r: 1, t: '2026-06-16T01:00:00Z' },
+        { a: 'المكسيك', b: 'كوريا الجنوبية', r: 2, t: '2026-06-19T01:00:00Z' },
+        { a: 'البرازيل', b: 'هايتي', r: 2, t: '2026-06-20T00:30:00Z' },
+        { a: 'تركيا', b: 'باراغواي', r: 2, t: '2026-06-20T03:00:00Z' },
+      ];
+      for (const f of fixes) {
+        await client.query('UPDATE matches SET start_at=$1 WHERE teamA=$2 AND teamB=$3 AND round=$4', [f.t, f.a, f.b, f.r]);
+      }
+      await client.query("INSERT INTO settings (key, value) VALUES ('tz_fix_v2', '1')");
+      console.log('Migration: restored all match times + fixed 6 specific errors (tz_fix_v2)');
     }
+    // Clean up old migration flag
+    await client.query("DELETE FROM settings WHERE key = 'tz_migration_done'");
 
     const adminUsername = process.env.ADMIN_USERNAME || 'admin';
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
