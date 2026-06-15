@@ -398,7 +398,10 @@ app.get('/predictions', requireAuth, async (req, res) => {
     const userPoints = leaderboard.find(p => p.id === req.user.id)?.total || 0;
     const totalPlayers = leaderboard.length;
     const top3 = leaderboard.slice(0, 3);
-    res.render('predictions', { user: req.user, matches: predictions, top3, totalPlayers, allMatchesCount, predictionsCount, userRank, userPoints });
+    var message = null;
+    if (req.query.msg === 'saved') message = 'تم حفظ التوقع بنجاح';
+    else if (req.query.msg === 'updated') message = 'تم تحديث التوقع بنجاح';
+    res.render('predictions', { user: req.user, matches: predictions, top3, totalPlayers, allMatchesCount, predictionsCount, userRank, userPoints, message });
   } catch (err) {
     console.error('Predictions error:', err);
     res.status(500).render('error', { message: 'حدث خطأ في تحميل الصفحة' });
@@ -420,8 +423,13 @@ app.post('/predictions', requireAuth, async (req, res) => {
     if (Number.isNaN(a) || Number.isNaN(b) || a < 0 || b < 0 || a > 99 || b > 99) {
       return res.redirect('/predictions');
     }
+    var existing = await db.getPrediction(req.user.id, match.id);
     await db.savePrediction(req.user.id, match.id, a, b);
-    res.redirect('/predictions');
+    if (existing) {
+      res.redirect('/predictions?msg=updated');
+    } else {
+      res.redirect('/predictions?msg=saved');
+    }
   } catch (err) {
     console.error('Save prediction error:', err);
     res.redirect('/predictions');

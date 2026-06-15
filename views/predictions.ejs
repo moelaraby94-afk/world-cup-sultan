@@ -141,36 +141,46 @@
                   </div>
 
                   <!-- Prediction Display / Score Stepper -->
-                  <% if (saved) { %>
-                  <div class="pc2-pred-score">
-                    <span class="pc2-pred-label">توقعك:</span>
-                    <span class="pc2-pred-num"><%= valA %></span>
-                    <span class="pc2-score-dash">-</span>
-                    <span class="pc2-pred-num"><%= valB %></span>
-                  </div>
-                  <% } else if (!ended) { %>
-                  <form method="POST" action="/predictions" class="pc2-form" id="pc2Form<%= m.id %>">
-                    <input type="hidden" name="matchId" value="<%= m.id %>">
-                    <input type="hidden" name="scoreA" id="pc2A<%= m.id %>" value="<%= valA %>">
-                    <input type="hidden" name="scoreB" id="pc2B<%= m.id %>" value="<%= valB %>">
-                    <div class="pc2-stepper">
-                      <div class="pc2-step-col">
-                        <button type="button" class="pc2-step-up" onclick="pc2Step(<%= m.id %>,'A',1)" <%= locked ? 'disabled' : '' %>>&#9650;</button>
-                        <span class="pc2-step-num" id="pc2VA<%= m.id %>"><%= valA %></span>
-                        <button type="button" class="pc2-step-dn" onclick="pc2Step(<%= m.id %>,'A',-1)" <%= locked ? 'disabled' : '' %>>&#9660;</button>
-                      </div>
-                      <span class="pc2-step-dash">-</span>
-                      <div class="pc2-step-col">
-                        <button type="button" class="pc2-step-up" onclick="pc2Step(<%= m.id %>,'B',1)" <%= locked ? 'disabled' : '' %>>&#9650;</button>
-                        <span class="pc2-step-num" id="pc2VB<%= m.id %>"><%= valB %></span>
-                        <button type="button" class="pc2-step-dn" onclick="pc2Step(<%= m.id %>,'B',-1)" <%= locked ? 'disabled' : '' %>>&#9660;</button>
-                      </div>
+                  <% if (ended) { %>
+                    <% if (saved) { %>
+                    <div class="pc2-pred-score">
+                      <span class="pc2-pred-label">توقعك:</span>
+                      <span class="pc2-pred-num"><%= valA %></span>
+                      <span class="pc2-score-dash">-</span>
+                      <span class="pc2-pred-num"><%= valB %></span>
                     </div>
-                  </form>
+                    <% } else { %>
+                    <div class="pc2-pred-none">
+                      <span>لم تسجل توقعك</span>
+                    </div>
+                    <% } %>
                   <% } else { %>
-                  <div class="pc2-pred-none">
-                    <span>لم تسجل توقعك</span>
-                  </div>
+                    <% if (saved) { %>
+                    <div class="pc2-pred-score" style="margin-bottom:6px;">
+                      <span class="pc2-pred-label">توقعك:</span>
+                      <span class="pc2-pred-num"><%= valA %></span>
+                      <span class="pc2-score-dash">-</span>
+                      <span class="pc2-pred-num"><%= valB %></span>
+                    </div>
+                    <% } %>
+                    <form method="POST" action="/predictions" class="pc2-form" id="pc2Form<%= m.id %>">
+                      <input type="hidden" name="matchId" value="<%= m.id %>">
+                      <input type="hidden" name="scoreA" id="pc2A<%= m.id %>" value="<%= valA %>">
+                      <input type="hidden" name="scoreB" id="pc2B<%= m.id %>" value="<%= valB %>">
+                      <div class="pc2-stepper">
+                        <div class="pc2-step-col">
+                          <button type="button" class="pc2-step-up" onclick="pc2Step(<%= m.id %>,'A',1)" <%= locked ? 'disabled' : '' %>>&#9650;</button>
+                          <span class="pc2-step-num" id="pc2VA<%= m.id %>"><%= valA %></span>
+                          <button type="button" class="pc2-step-dn" onclick="pc2Step(<%= m.id %>,'A',-1)" <%= locked ? 'disabled' : '' %>>&#9660;</button>
+                        </div>
+                        <span class="pc2-step-dash">-</span>
+                        <div class="pc2-step-col">
+                          <button type="button" class="pc2-step-up" onclick="pc2Step(<%= m.id %>,'B',1)" <%= locked ? 'disabled' : '' %>>&#9650;</button>
+                          <span class="pc2-step-num" id="pc2VB<%= m.id %>"><%= valB %></span>
+                          <button type="button" class="pc2-step-dn" onclick="pc2Step(<%= m.id %>,'B',-1)" <%= locked ? 'disabled' : '' %>>&#9660;</button>
+                        </div>
+                      </div>
+                    </form>
                   <% } %>
 
                   <!-- Team B -->
@@ -198,7 +208,7 @@
                   <% } else { %>
                     <button type="submit" class="pc2-save-btn" id="pc2Btn<%= m.id %>" form="pc2Form<%= m.id %>" onclick="pc2Submit(<%= m.id %>)">
                       <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
-                      <%= saved ? 'تم الحفظ ✓' : 'حفظ التوقع' %>
+                      <%= saved ? 'تحديث التوقع' : 'حفظ التوقع' %>
                     </button>
                   <% } %>
                 </div>
