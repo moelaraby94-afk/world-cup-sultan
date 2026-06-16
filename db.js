@@ -346,9 +346,8 @@ async function init() {
     const expectedCount = 103;
     const currentCount = parseInt(matchesCheck.rows[0].count);
     if (currentCount !== expectedCount) {
-      console.log(`Matches count is ${currentCount}, expected ${expectedCount}. Recreating...`);
-      await client.query('DELETE FROM predictions');
-      await client.query('DELETE FROM matches');
+      console.log(`Matches count is ${currentCount}, expected ${expectedCount}. Adding missing matches only...`);
+      await client.query('DELETE FROM matches WHERE id NOT IN (SELECT DISTINCT match_id FROM predictions)');
       const fixtures = generateFixtures();
       for (const fixture of fixtures) {
         await client.query(
@@ -361,17 +360,8 @@ async function init() {
       const sampleMatch = await client.query('SELECT teamA FROM matches LIMIT 1');
       const expectedTeams = Object.values(GROUPS).flat();
       if (!expectedTeams.includes(sampleMatch.rows[0].teama)) {
-        console.log('Match team names are outdated. Recreating...');
-        await client.query('DELETE FROM predictions');
-        await client.query('DELETE FROM matches');
-        const fixtures = generateFixtures();
-        for (const fixture of fixtures) {
-          await client.query(
-            'INSERT INTO matches (teamA, teamB, stage, start_at, round) VALUES ($1, $2, $3, $4, $5)',
-            [fixture.teamA, fixture.teamB, fixture.stage, fixture.start, fixture.round]
-          );
-        }
-        console.log(`Created ${fixtures.length} matches`);
+        console.log('Match team names are outdated. Skipping recreation to protect predictions...');
+        // removed DELETE + recreate to protect predictions
       }
     }
 
