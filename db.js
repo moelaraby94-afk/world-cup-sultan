@@ -1,5 +1,7 @@
 const { Pool, types } = require('pg');
 const bcrypt = require('bcrypt');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 // Force TIMESTAMP (type 1114) values to be treated as UTC regardless of Node.js timezone
@@ -1163,6 +1165,30 @@ async function initNewsTable() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+
+  // Migrate old file-path images (e.g. /uploads/news-xxx.jpg) to base64
+  const migCheck = await pool.query("SELECT value FROM settings WHERE key = 'news_img_mig_v1'");
+  if (migCheck.rows.length === 0) {
+    const oldNews = await pool.query("SELECT id, image_path FROM news WHERE image_path LIKE '/uploads/%'");
+    for (const row of oldNews.rows) {
+      const relativePath = row.image_path.replace(/^\//, '');
+      const filePath = path.join(__dirname, '..', 'public', relativePath);
+      try {
+        const data = fs.readFileSync(filePath);
+        const ext = path.extname(row.image_path).toLowerCase();
+        const mimeMap = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.gif': 'image/gif', '.webp': 'image/webp' };
+        const mime = mimeMap[ext] || 'image/jpeg';
+        const b64 = data.toString('base64');
+        await pool.query('UPDATE news SET image_path=$1 WHERE id=$2', ['data:' + mime + ';base64,' + b64, row.id]);
+      } catch (e) {
+        await pool.query('UPDATE news SET image_path=NULL WHERE id=$1', [row.id]);
+      }
+    }
+    await pool.query("INSERT INTO settings (key, value) VALUES ('news_img_mig_v1', '1')");
+    if (oldNews.rows.length > 0) {
+      console.log('Migration: converted ' + oldNews.rows.length + ' old news images to base64');
+    }
+  }
 }
 
 async function initNewsCommentsTable() {
