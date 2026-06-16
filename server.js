@@ -682,28 +682,38 @@ app.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
       if (!matchesByRound[m.round]) matchesByRound[m.round] = [];
       matchesByRound[m.round].push(m);
     });
-    const matchPredictions = {};
-    await Promise.all(matches.map(async m => {
-      matchPredictions[m.id] = await db.getAllPredictionsForMatch(m.id);
-    }));
-    // Compute missed predictions per user
-    var lockedPublishedMatches = matches.filter(function(m) {
-      return publishedRounds.includes(m.round) && isPredictionLocked(m.start_at);
-    });
-    var leaderboardWithMissed = leaderboard.map(function(entry) {
-      var lockedPredCount = 0;
-      var missedMatchNames = [];
-      lockedPublishedMatches.forEach(function(lm) {
-        var preds = matchPredictions[lm.id] || [];
-        var hasPred = preds.some(function(p) { return p.user_id === entry.id; });
-        if (hasPred) lockedPredCount++;
-        else missedMatchNames.push({ teamA: lm.teamA, teamB: lm.teamB });
+    // جلب التوقعات لكل مباراة (محمي من الأخطاء)
+    var matchPredictions = {};
+    try {
+      await Promise.all(matches.map(async m => {
+        matchPredictions[m.id] = await db.getAllPredictionsForMatch(m.id);
+      }));
+    } catch (err) {
+      console.error('Error loading match predictions:', err.message || err);
+    }
+    // Compute missed predictions per user (محمي من الأخطاء)
+    var leaderboardWithMissed = leaderboard;
+    try {
+      var lockedPublishedMatches = matches.filter(function(m) {
+        return publishedRounds.includes(m.round) && isPredictionLocked(m.start_at);
       });
-      return Object.assign({}, entry, {
-        missed_predictions: lockedPublishedMatches.length - lockedPredCount,
-        missed_match_names: missedMatchNames
+      leaderboardWithMissed = leaderboard.map(function(entry) {
+        var lockedPredCount = 0;
+        var missedMatchNames = [];
+        lockedPublishedMatches.forEach(function(lm) {
+          var preds = matchPredictions[lm.id] || [];
+          var hasPred = preds.some(function(p) { return p.user_id === entry.id; });
+          if (hasPred) lockedPredCount++;
+          else missedMatchNames.push({ teamA: lm.teamA, teamB: lm.teamB });
+        });
+        return Object.assign({}, entry, {
+          missed_predictions: lockedPublishedMatches.length - lockedPredCount,
+          missed_match_names: missedMatchNames
+        });
       });
-    });
+    } catch (err) {
+      console.error('Missed predictions error:', err.stack || err);
+    }
 
     const groups = db.getGroups();
     const teamFlags = db.getTeamFlags();

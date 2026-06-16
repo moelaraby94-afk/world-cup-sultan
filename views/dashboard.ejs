@@ -627,7 +627,7 @@
                   <td style="color:var(--text-secondary);font-size:0.85rem;">@<%= player.username %></td>
                   <td><strong style="color:var(--primary);"><%= player.total %></strong></td>
                   <td>
-                    <span class="mp-badge <%= mpClass %>" style="cursor:<%= mp>0?'pointer':'default' %>;" onclick="<%= mp>0 ? \"showMissedPredictions('\" + escJsStr(player.name) + \"',\" + JSON.stringify(player.missed_match_names) + \")\" : '' %>"><%= mpLabel %></span>
+                    <span class="mp-badge <%= mpClass %>" style="cursor:<%= mp>0?'pointer':'default' %>;" onclick="<%= mp>0 ? 'showMissedPredictions(' + JSON.stringify(player.name) + ',' + JSON.stringify(player.missed_match_names) + ')' : '' %>"><%= mpLabel %></span>
                   </td>
                 </tr>
                 <% }) %>
