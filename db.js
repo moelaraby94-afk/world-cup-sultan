@@ -274,6 +274,9 @@ async function init() {
       )
     `);
 
+    // Safe migration: add manual_points column if missing
+    await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS manual_points INTEGER DEFAULT 0");
+
     await client.query('CREATE INDEX IF NOT EXISTS idx_predictions_user_id ON predictions(user_id)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_predictions_match_id ON predictions(match_id)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_matches_start_at ON matches(start_at)');
