@@ -636,7 +636,8 @@ async function getLeaderboard() {
             END
           ELSE 0
         END
-      ), 0) AS total,
+      ), 0) + COALESCE(u.manual_points, 0) AS total,
+      u.manual_points,
       COUNT(p.id) AS predictions_count,
       COALESCE(SUM(
         CASE
@@ -649,7 +650,7 @@ async function getLeaderboard() {
     LEFT JOIN predictions p ON u.id = p.user_id
     LEFT JOIN matches m ON p.match_id = m.id
     WHERE u.role != 'admin' AND u.status = 'approved'
-    GROUP BY u.id, u.name, u.username
+    GROUP BY u.id, u.name, u.username, u.manual_points
     ORDER BY total DESC, u.name ASC
   `);
   return result.rows.map(row => ({
@@ -662,6 +663,10 @@ async function getLeaderboard() {
       ? Math.round((parseInt(row.correct_predictions) / parseInt(row.judged_predictions)) * 100 * 10) / 10
       : 0
   }));
+}
+
+async function updateManualPoints(userId, points) {
+  await pool.query('UPDATE users SET manual_points = $1 WHERE id = $2', [points, userId]);
 }
 
 async function getGroupStandings() {
@@ -787,12 +792,12 @@ async function getLeaderboardStats() {
           END
         ELSE 0
       END
-    ), 0) AS total
+    ), 0) + COALESCE(u.manual_points, 0) AS total
     FROM users u
     LEFT JOIN predictions p ON u.id = p.user_id
     LEFT JOIN matches m ON p.match_id = m.id
     WHERE u.role != 'admin' AND u.status = 'approved'
-    GROUP BY u.id, u.name
+    GROUP BY u.id, u.name, u.manual_points
     ORDER BY total DESC LIMIT 1
   `);
 
@@ -943,6 +948,7 @@ module.exports = {
   updateMatchResult,
   getLeaderboard,
   getLeaderboardStats,
+  updateManualPoints,
   getGroupStandings,
   calculateGroupStandings,
   calculatePoints,

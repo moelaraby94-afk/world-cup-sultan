@@ -633,6 +633,17 @@ app.post('/admin/delete/:id', requireAuth, requireAdmin, adminLimiter, async (re
   }
 });
 
+app.post('/admin/manual-points', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
+  try {
+    const { userId, points } = req.body;
+    await db.updateManualPoints(parseInt(userId), parseInt(points) || 0);
+    res.redirect('/dashboard?tab=players');
+  } catch (err) {
+    console.error('Manual points error:', err);
+    res.redirect('/dashboard?tab=players');
+  }
+});
+
 app.post('/admin/round', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
     const { round } = req.body;

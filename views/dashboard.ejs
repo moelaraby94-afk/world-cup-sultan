@@ -296,6 +296,11 @@
                     <button type="submit" class="db-btn db-btn-approve">✓ قبول</button>
                   </form>
                   <% } %>
+                  <form method="POST" action="/admin/manual-points" style="margin:0;display:flex;align-items:center;gap:4px;">
+                    <input type="hidden" name="userId" value="<%= u.id %>">
+                    <input type="number" name="points" value="<%= u.manual_points || 0 %>" min="0" style="width:50px;padding:4px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);text-align:center;font-size:0.85rem;" title="نقاط تعويضية">
+                    <button type="submit" class="db-btn db-btn-approve" style="font-size:0.75rem;padding:4px 8px;" title="حفظ النقاط التعويضية">💾</button>
+                  </form>
                   <form method="POST" action="/admin/delete/<%= u.id %>" style="margin:0;" onsubmit="return confirm('حذف <%= u.name %>؟ سيتم حذف جميع توقعاته.');">
                     <button type="submit" class="db-btn db-btn-delete">🗑 حذف</button>
                   </form>
