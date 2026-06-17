@@ -1002,7 +1002,17 @@
       if (predApprovedUsers.length === 0) {
         body.innerHTML = countdownHtml + '<p class="pm-empty">لا يوجد متسابقون بعد</p>';
       } else {
-        var html = countdownHtml + '<div class="pm-chips">';
+        var html = countdownHtml;
+        if (withoutPred.length > 0) {
+          html += '<div style="margin-bottom:10px;padding:8px 12px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;">';
+          html += '<div style="font-weight:800;font-size:0.8rem;color:#ef4444;margin-bottom:6px;">⚠️ لم يسجلوا توقع ('+withoutPred.length+')</div>';
+          html += '<div style="display:flex;flex-wrap:wrap;gap:4px;">';
+          withoutPred.forEach(function(u){
+            html += '<span style="background:rgba(239,68,68,0.12);color:#ef4444;padding:3px 8px;border-radius:6px;font-size:0.78rem;font-weight:700;">'+escHtml(u.name)+'</span>';
+          });
+          html += '</div></div>';
+        }
+        html += '<div class="pm-chips">';
         predApprovedUsers.forEach(function(u){
           var p = predById[u.id];
           var hasPred = !!p;
