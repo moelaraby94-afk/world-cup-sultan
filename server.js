@@ -597,6 +597,17 @@ app.post('/admin/delete-prediction/:matchId/:userId', requireAuth, requireAdmin,
   }
 });
 
+app.post('/admin/save-prediction/:matchId/:userId', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
+  try {
+    const { scoreA, scoreB } = req.body;
+    await db.savePrediction(parseInt(req.params.userId), parseInt(req.params.matchId), parseInt(scoreA) || 0, parseInt(scoreB) || 0);
+    res.redirect('/dashboard?tab=predictions');
+  } catch (err) {
+    console.error('Save prediction error:', err);
+    res.redirect('/dashboard?tab=predictions');
+  }
+});
+
 app.post('/admin/toggle-round-predictions', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
     const { round, action } = req.body;

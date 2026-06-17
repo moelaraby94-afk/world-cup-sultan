@@ -155,6 +155,8 @@
     .pm-chip-miss { border-color:rgba(239,68,68,0.25); background:rgba(239,68,68,0.06); }
     .pm-del-btn { background:none; border:none; cursor:pointer; font-size:0.8rem; padding:0 2px; opacity:0.5; transition:opacity 0.15s; }
     .pm-del-btn:hover { opacity:1; }
+    .pm-save-btn { background:#22c55e; border:none; cursor:pointer; font-size:0.75rem; padding:4px 8px; border-radius:8px; color:#fff; font-weight:700; transition:opacity 0.15s; }
+    .pm-save-btn:hover { opacity:0.8; }
     .pm-score-miss { background:transparent; color:#ef4444; font-size:0.75rem; padding:2px 4px; font-weight:700; }
     .pm-countdown { font-size:1.1rem; color:#ef4444; margin-bottom:12px; padding:10px 14px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:10px; text-align:center; font-weight:800; }
     .pm-btn { width:100%; padding:9px; border-radius:8px; border:none; font-size:0.85rem; font-weight:700; cursor:pointer; }
@@ -1001,12 +1003,19 @@
         body.innerHTML = countdownHtml + '<p class="pm-empty">لا يوجد متسابقون بعد</p>';
       } else {
         var html = countdownHtml + '<div class="pm-chips">';
-        withoutPred.forEach(function(u){
-          html += '<div class="pm-chip pm-chip-miss"><span class="pm-name">'+escHtml(u.name)+'</span><span class="pm-score pm-score-miss">لم يسجل توقع</span></div>';
-        });
-        withPred.forEach(function(u){
+        predApprovedUsers.forEach(function(u){
           var p = predById[u.id];
-          html += '<div class="pm-chip"><span class="pm-name">'+escHtml(u.name)+'</span><span class="pm-score">'+p.a+' - '+p.b+'</span><form method="POST" action="/admin/delete-prediction/'+matchId+'/'+u.id+'" style="margin:0;display:inline" onsubmit="return confirm(\'حذف توقع '+escHtml(u.name)+'?\')"><button type="submit" class="pm-del-btn" title="حذف التوقع">🗑</button></form></div>';
+          var hasPred = !!p;
+          html += '<form method="POST" action="/admin/save-prediction/'+matchId+'/'+u.id+'" style="display:flex;align-items:center;gap:6px;background:var(--surface-alt,#f8fafc);border:1px solid var(--border);border-radius:20px;padding:5px 12px;margin-bottom:6px;">';
+          html += '<span class="pm-name" style="flex:1;">'+escHtml(u.name)+'</span>';
+          html += '<input type="number" name="scoreA" value="'+(hasPred ? p.a : '')+'" min="0" max="99" style="width:36px;padding:4px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);text-align:center;font-size:0.85rem;" required>';
+          html += '<span style="color:var(--text-secondary);font-weight:700;">-</span>';
+          html += '<input type="number" name="scoreB" value="'+(hasPred ? p.b : '')+'" min="0" max="99" style="width:36px;padding:4px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);text-align:center;font-size:0.85rem;" required>';
+          html += '<button type="submit" class="pm-save-btn" title="حفظ التوقع">💾</button>';
+          if (hasPred) {
+            html += '<button type="button" class="pm-del-btn" title="حذف التوقع" onclick="if(confirm(\'حذف توقع '+escHtml(u.name)+'?\')){var f=document.createElement(\'form\');f.method=\'POST\';f.action=\'/admin/delete-prediction/'+matchId+'/'+u.id+'\';f.style.display=\'none\';document.body.appendChild(f);f.submit();}">🗑</button>';
+          }
+          html += '</form>';
         });
         html += '</div>';
         body.innerHTML = html;
