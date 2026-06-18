@@ -236,6 +236,7 @@
           <button class="db-tab <%= activeTab==='leaderboard'?'active':'' %>" onclick="dbTab('leaderboard',this)">الترتيب</button>
           <button class="db-tab <%= activeTab==='news'?'active':'' %>" onclick="dbTab('news',this)">الأخبار</button>
           <button class="db-tab <%= activeTab==='comments'?'active':'' %>" onclick="dbTab('comments',this)">التعليقات</button>
+          <button class="db-tab <%= activeTab==='challenge'?'active':'' %>" onclick="dbTab('challenge',this)">التحدي</button>
           <button class="db-tab <%= activeTab==='settings'?'active':'' %>" onclick="dbTab('settings',this)">الإعدادات</button>
         </div>
 
@@ -749,6 +750,106 @@
                 <% }); %>
               </div>
             <% } %>
+          </div>
+        </div>
+
+        <!-- ===== TAB: التحدي ===== -->
+        <div class="db-panel <%= activeTab==='challenge'?'active':'' %>" id="panel-challenge">
+          <div class="card section-card">
+            <div style="font-weight:800;font-size:0.95rem;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22" style="color:var(--primary)"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/>
+              </svg>
+              إدارة التحدي
+            </div>
+
+            <!-- Current Config -->
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;flex:1;min-width:150px;">
+                <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:2px;">حالة التحدي</div>
+                <div style="font-weight:800;font-size:1rem;color:<%= config.open ? '#22c55e' : '#ef4444' %>"><%= config.open ? 'مفتوح' : 'مغلق' %></div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;flex:1;min-width:150px;">
+                <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:2px;">الإغلاق</div>
+                <div style="font-weight:800;font-size:0.9rem;"><%= config.deadline ? new Date(config.deadline).toLocaleString('ar-SA') : 'غير محدد' %></div>
+              </div>
+            </div>
+
+            <!-- Set Deadline -->
+            <form method="POST" action="/admin/challenge/deadline" style="margin-bottom:12px;">
+              <label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:4px;">موعد إغلاق التحدي</label>
+              <div style="display:flex;gap:6px;">
+                <input type="datetime-local" name="deadline" required style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.85rem;">
+                <button type="submit" class="db-btn db-btn-approve">حفظ</button>
+              </div>
+            </form>
+
+            <!-- Open/Close -->
+            <div style="display:flex;gap:6px;margin-bottom:16px;">
+              <form method="POST" action="/admin/challenge/open">
+                <button type="submit" class="db-btn db-btn-approve" <%= config.open ? 'disabled style="opacity:0.5"' : '' %>>فتح التحدي</button>
+              </form>
+              <form method="POST" action="/admin/challenge/close">
+                <button type="submit" class="db-btn db-btn-delete" <%= !config.open ? 'disabled style="opacity:0.5"' : '' %>>إغلاق التحدي</button>
+              </form>
+            </div>
+
+            <!-- Set Results -->
+            <div style="margin-bottom:12px;">
+              <label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:4px;">نتائج الأدوار الإقصائية</label>
+              <form method="POST" action="/admin/challenge/results" style="margin-bottom:8px;">
+                <input type="hidden" name="round" value="qf">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                  <span style="font-size:0.8rem;font-weight:700;">دور الـ8:</span>
+                  <input type="text" name="teams" placeholder="أسماء المنتخبات مفصولة بفاصلة" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.85rem;min-width:200px;">
+                  <button type="submit" class="db-btn db-btn-approve">حفظ</button>
+                </div>
+              </form>
+              <form method="POST" action="/admin/challenge/results" style="margin-bottom:8px;">
+                <input type="hidden" name="round" value="sf">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                  <span style="font-size:0.8rem;font-weight:700;">دور الـ4:</span>
+                  <input type="text" name="teams" placeholder="أسماء المنتخبات مفصولة بفاصلة" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.85rem;min-width:200px;">
+                  <button type="submit" class="db-btn db-btn-approve">حفظ</button>
+                </div>
+              </form>
+              <form method="POST" action="/admin/challenge/results" style="margin-bottom:8px;">
+                <input type="hidden" name="round" value="finalists">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                  <span style="font-size:0.8rem;font-weight:700;">طرفا النهائي:</span>
+                  <input type="text" name="teams" placeholder="أسماء المنتخبات مفصولة بفاصلة" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.85rem;min-width:200px;">
+                  <button type="submit" class="db-btn db-btn-approve">حفظ</button>
+                </div>
+              </form>
+              <form method="POST" action="/admin/challenge/results">
+                <input type="hidden" name="round" value="champion">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                  <span style="font-size:0.8rem;font-weight:700;">البطل:</span>
+                  <input type="text" name="teams" placeholder="اسم المنتخب البطل" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.85rem;min-width:200px;">
+                  <button type="submit" class="db-btn db-btn-approve">حفظ</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Calculate Points -->
+            <form method="POST" action="/admin/challenge/calculate">
+              <button type="submit" class="db-btn" style="background:#d4af37;color:#fff;font-weight:800;">🧮 احسب نقاط التحدي</button>
+            </form>
+
+            <!-- Participants List -->
+            <div style="margin-top:20px;">
+              <div style="font-weight:700;font-size:0.85rem;margin-bottom:8px;">المشاركون (<%= (challengePicks||[]).length %>)</div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <% (challengePicks||[]).forEach(function(p) { %>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:0.82rem;">
+                  <span style="font-weight:700;"><%= p.user_name %></span>
+                  <span style="display:flex;gap:6px;">
+                    <% if (p.qf) { %><span style="font-size:0.72rem;color:var(--text-secondary);">QF: <%= p.qf.length %></span><% } %>
+                    <% if (p.sf) { %><span style="font-size:0.72rem;color:var(--text-secondary);">SF: <%= p.sf.length %></span><% } %>
+                  </span>
+                </div>
+                <% }) %>
+              </div>
+            </div>
           </div>
         </div>
 

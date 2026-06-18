@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>لعبة التحدي - مسابقة كأس العالم</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .ch-page { max-width: 720px; margin: 0 auto; padding: 16px; }
+    .ch-header { text-align:center; margin-bottom:24px; }
+    .ch-title { font-size:1.5rem; font-weight:900; background:linear-gradient(135deg,#d4af37,#f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .ch-desc { color:var(--text-secondary); font-size:0.88rem; margin-top:6px; }
+    .ch-countdown { text-align:center; padding:16px; background:var(--surface); border:1px solid var(--border); border-radius:14px; margin-bottom:24px; }
+    .ch-countdown-lbl { font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px; }
+    .ch-countdown-val { font-size:2rem; font-weight:900; color:#ef4444; font-family:monospace; letter-spacing:2px; }
+    .ch-closed-badge { display:inline-block; padding:6px 16px; background:#ef4444; color:#fff; border-radius:8px; font-weight:800; font-size:0.85rem; }
+    .ch-section { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:16px; }
+    .ch-section-title { font-size:1rem; font-weight:800; margin-bottom:4px; }
+    .ch-section-desc { font-size:0.8rem; color:var(--text-secondary); margin-bottom:10px; }
+    .ch-section-points { display:inline-block; background:rgba(212,175,55,0.15); color:#d4af37; padding:2px 10px; border-radius:20px; font-size:0.75rem; font-weight:800; margin-bottom:12px; }
+    .ch-team-grid { display:flex; flex-wrap:wrap; gap:6px; }
+    .ch-team { display:flex; align-items:center; gap:6px; padding:6px 12px; border:2px solid var(--border); border-radius:10px; cursor:pointer; transition:all 0.15s; user-select:none; font-size:0.82rem; font-weight:600; background:var(--bg); }
+    .ch-team:hover { border-color:var(--primary); background:rgba(99,102,241,0.06); }
+    .ch-team.selected { border-color:#22c55e; background:rgba(34,197,94,0.1); color:#16a34a; }
+    .ch-team.disabled { opacity:0.4; cursor:not-allowed; }
+    .ch-team-flag { width:20px; height:14px; object-fit:cover; border-radius:2px; }
+    .ch-save-btn { display:block; width:100%; padding:14px; border:none; border-radius:12px; font-size:1rem; font-weight:800; cursor:pointer; transition:opacity 0.15s; margin-top:8px; }
+    .ch-save-btn:disabled { opacity:0.5; cursor:not-allowed; }
+    .ch-saved-msg { text-align:center; padding:12px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:10px; color:#16a34a; font-weight:800; font-size:0.9rem; margin-bottom:16px; }
+    .ch-pick-info { display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--text-secondary); margin-bottom:8px; }
+    .ch-pick-count { font-weight:800; }
+    .ch-pick-count.valid { color:#16a34a; }
+    .ch-pick-count.invalid { color:#ef4444; }
+    @media (max-width:600px) {
+      .ch-team { padding:5px 10px; font-size:0.78rem; }
+      .ch-title { font-size:1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('partials/sidebar', { active: 'challenge', user: user, top3: top3 }) %>
+    <main class="main-content">
+      <%- include('partials/topbar', { pageTitle: '🎯 لعبة التحدي', user: user }) %>
+      <section class="page-content">
+        <div class="ch-page">
+
+          <div class="ch-header">
+            <div class="ch-title">🏆 توقع واربح المزيد من النقاط</div>
+            <div class="ch-desc">بعد انتهاء الجولة الأولى، توقع مستقبل البطولة واحصل على نقاط إضافية عند صحة توقعاتك.</div>
+          </div>
+
+          <% if (config.open) { %>
+          <div class="ch-countdown">
+            <div class="ch-countdown-lbl">⏳ الوقت المتبقي لإغلاق التحدي</div>
+            <div class="ch-countdown-val" id="chCountdown">--:--:--</div>
+          </div>
+          <% } else { %>
+          <div style="text-align:center;margin-bottom:24px;">
+            <span class="ch-closed-badge">🔒 التحدي مغلق</span>
+          </div>
+          <% } %>
+
+          <% if (saved) { %>
+          <div class="ch-saved-msg">✅ تم حفظ توقعاتك بنجاح</div>
+          <% } %>
+
+          <form id="chForm" method="POST" action="/challenge/save">
+            <!-- Section 1: دور الـ8 -->
+            <div class="ch-section">
+              <div class="ch-section-title">🎯 توقع المنتخبات المتأهلة إلى دور الـ8</div>
+              <div class="ch-section-desc">اختر 8 منتخبات من القائمة</div>
+              <span class="ch-section-points">5 نقاط لكل منتخب صحيح</span>
+              <div class="ch-pick-info">
+                <span>المختار: <span class="ch-pick-count" id="qfCount">0</span>/8</span>
+              </div>
+              <div class="ch-team-grid" id="qfGrid">
+                <% teams.forEach(function(t) { %>
+                <div class="ch-team" data-team="<%= t %>" data-section="qf" onclick="toggleTeam(this,'qf',8)">
+                  <img src="/flags/<%= teamFlags[t] || 'unknown' %>.png" class="ch-team-flag" onerror="this.style.display='none'">
+                  <%= t %>
+                  <input type="checkbox" name="qf" value="<%= t %>" style="display:none" <%= picks && picks.qf && picks.qf.includes(t) ? 'checked' : '' %>>
+                </div>
+                <% }) %>
+              </div>
+            </div>
+
+            <!-- Section 2: دور الـ4 -->
+            <div class="ch-section">
+              <div class="ch-section-title">🎯 توقع المنتخبات المتأهلة إلى دور الـ4</div>
+              <div class="ch-section-desc">اختر 4 منتخبات من القائمة</div>
+              <span class="ch-section-points">10 نقاط لكل منتخب صحيح</span>
+              <div class="ch-pick-info">
+                <span>المختار: <span class="ch-pick-count" id="sfCount">0</span>/4</span>
+              </div>
+              <div class="ch-team-grid" id="sfGrid">
+                <% teams.forEach(function(t) { %>
+                <div class="ch-team" data-team="<%= t %>" data-section="sf" onclick="toggleTeam(this,'sf',4)">
+                  <img src="/flags/<%= teamFlags[t] || 'unknown' %>.png" class="ch-team-flag" onerror="this.style.display='none'">
+                  <%= t %>
+                  <input type="checkbox" name="sf" value="<%= t %>" style="display:none" <%= picks && picks.sf && picks.sf.includes(t) ? 'checked' : '' %>>
+                </div>
+                <% }) %>
+              </div>
+            </div>
+
+            <!-- Section 3: طرفا النهائي -->
+            <div class="ch-section">
+              <div class="ch-section-title">🎯 توقع طرفي المباراة النهائية</div>
+              <div class="ch-section-desc">اختر منتخبين</div>
+              <span class="ch-section-points">15 نقطة لكل منتخب صحيح</span>
+              <div class="ch-pick-info">
+                <span>المختار: <span class="ch-pick-count" id="finalistsCount">0</span>/2</span>
+              </div>
+              <div class="ch-team-grid" id="finalistsGrid">
+                <% teams.forEach(function(t) { %>
+                <div class="ch-team" data-team="<%= t %>" data-section="finalists" onclick="toggleTeam(this,'finalists',2)">
+                  <img src="/flags/<%= teamFlags[t] || 'unknown' %>.png" class="ch-team-flag" onerror="this.style.display='none'">
+                  <%= t %>
+                  <input type="checkbox" name="finalists" value="<%= t %>" style="display:none" <%= picks && picks.finalists && picks.finalists.includes(t) ? 'checked' : '' %>>
+                </div>
+                <% }) %>
+              </div>
+            </div>
+
+            <!-- Section 4: البطل -->
+            <div class="ch-section">
+              <div class="ch-section-title">🏆 توقع بطل كأس العالم</div>
+              <div class="ch-section-desc">اختر منتخب واحد</div>
+              <span class="ch-section-points">20 نقطة إذا كان الاختيار صحيحاً</span>
+              <div class="ch-pick-info">
+                <span>المختار: <span class="ch-pick-count" id="championCount">0</span>/1</span>
+              </div>
+              <div class="ch-team-grid" id="championGrid">
+                <% teams.forEach(function(t) { %>
+                <div class="ch-team" data-team="<%= t %>" data-section="champion" onclick="toggleTeam(this,'champion',1)">
+                  <img src="/flags/<%= teamFlags[t] || 'unknown' %>.png" class="ch-team-flag" onerror="this.style.display='none'">
+                  <%= t %>
+                  <input type="checkbox" name="champion" value="<%= t %>" style="display:none" <%= picks && picks.champion && picks.champion === t ? 'checked' : '' %>>
+                </div>
+                <% }) %>
+              </div>
+            </div>
+
+            <button type="submit" class="ch-save-btn" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;" id="chSaveBtn" <%= !config.open ? 'disabled' : '' %>>
+              💾 حفظ التحدي
+            </button>
+          </form>
+
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    var configDeadline = '<%= config.deadline || "" %>';
+    var isOpen = <%= config.open ? 'true' : 'false' %>;
+
+    function toggleTeam(el, section, max) {
+      if (!isOpen) return;
+      var chk = el.querySelector('input[type=checkbox]');
+      var sectionGrid = document.getElementById(section + 'Grid');
+      var selected = sectionGrid.querySelectorAll('.ch-team.selected').length;
+      if (chk.checked) {
+        chk.checked = false;
+        el.classList.remove('selected');
+      } else {
+        if (selected >= max) return;
+        chk.checked = true;
+        el.classList.add('selected');
+      }
+      updateCounts();
+    }
+
+    function updateCounts() {
+      ['qf','sf','finalists','champion'].forEach(function(section){
+        var grid = document.getElementById(section + 'Grid');
+        if (!grid) return;
+        var count = grid.querySelectorAll('.ch-team.selected').length;
+        var el = document.getElementById(section + 'Count');
+        if (!el) return;
+        el.textContent = count;
+        el.className = 'ch-pick-count';
+        var max = section === 'qf' ? 8 : section === 'sf' ? 4 : section === 'finalists' ? 2 : 1;
+        if (count === max) el.classList.add('valid');
+        else el.classList.add('invalid');
+      });
+      var allValid = true;
+      [['qf',8],['sf',4],['finalists',2],['champion',1]].forEach(function(pair){
+        var grid = document.getElementById(pair[0] + 'Grid');
+        if (!grid) return;
+        allValid = allValid && grid.querySelectorAll('.ch-team.selected').length === pair[1];
+      });
+      document.getElementById('chSaveBtn').disabled = !allValid || !isOpen;
+    }
+
+    // Countdown timer
+    if (isOpen && configDeadline) {
+      var deadline = new Date(configDeadline + 'Z').getTime();
+      function tick() {
+        var now = Date.now();
+        var diff = deadline - now;
+        var el = document.getElementById('chCountdown');
+        if (diff <= 0) {
+          el.textContent = '00:00:00';
+          isOpen = false;
+          document.getElementById('chSaveBtn').disabled = true;
+          return;
+        }
+        var h = String(Math.floor(diff / 3600000)).padStart(2,'0');
+        var m = String(Math.floor((diff % 3600000) / 60000)).padStart(2,'0');
+        var s = String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
+        el.textContent = h + ':' + m + ':' + s;
+      }
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    // Init UI from server data
+    document.querySelectorAll('.ch-team input[type=checkbox]:checked').forEach(function(cb){
+      cb.parentElement.classList.add('selected');
+    });
+    updateCounts();
+  </script>
+  <%- include('partials/mobile-nav', { active: 'challenge' }) %>
+</body>
+</html>

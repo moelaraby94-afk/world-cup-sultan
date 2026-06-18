@@ -276,6 +276,31 @@ async function init() {
 
     // Safe migration: add manual_points column if missing
     await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS manual_points INTEGER DEFAULT 0");
+    await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS challenge_points INTEGER DEFAULT 0");
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS challenge_picks (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+        qf TEXT[] DEFAULT '{}',
+        sf TEXT[] DEFAULT '{}',
+        finalists TEXT[] DEFAULT '{}',
+        champion TEXT DEFAULT NULL,
+        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS challenge_results (
+        id SERIAL PRIMARY KEY,
+        round VARCHAR(20) NOT NULL,
+        team VARCHAR(100) NOT NULL,
+        UNIQUE(round, team)
+      )
+    `);
+
+    await client.query('CREATE INDEX IF NOT EXISTS idx_challenge_picks_user_id ON challenge_picks(user_id)');
 
     await client.query('CREATE INDEX IF NOT EXISTS idx_predictions_user_id ON predictions(user_id)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_predictions_match_id ON predictions(match_id)');
@@ -643,8 +668,9 @@ async function getLeaderboard() {
             END
           ELSE 0
         END
-      ), 0) + COALESCE(u.manual_points, 0) AS total,
+      ), 0) + COALESCE(u.manual_points, 0) + COALESCE(u.challenge_points, 0) AS total,
       u.manual_points,
+      u.challenge_points,
       COUNT(p.id) AS predictions_count,
       COALESCE(SUM(
         CASE
@@ -657,7 +683,7 @@ async function getLeaderboard() {
     LEFT JOIN predictions p ON u.id = p.user_id
     LEFT JOIN matches m ON p.match_id = m.id
     WHERE u.role != 'admin' AND u.status = 'approved'
-    GROUP BY u.id, u.name, u.username, u.manual_points
+    GROUP BY u.id, u.name, u.username, u.manual_points, u.challenge_points
     ORDER BY total DESC, u.name ASC
   `);
   return result.rows.map(row => ({
@@ -674,6 +700,90 @@ async function getLeaderboard() {
 
 async function updateManualPoints(userId, points) {
   await pool.query('UPDATE users SET manual_points = $1 WHERE id = $2', [points, userId]);
+}
+
+async function getChallengeConfig() {
+  const result = await pool.query("SELECT value FROM settings WHERE key = 'challenge_deadline'");
+  const openResult = await pool.query("SELECT value FROM settings WHERE key = 'challenge_open'");
+  return {
+    deadline: result.rows.length > 0 ? result.rows[0].value : null,
+    open: openResult.rows.length > 0 ? openResult.rows[0].value === 'true' : false
+  };
+}
+
+async function setChallengeDeadline(deadline) {
+  await pool.query("INSERT INTO settings (key, value) VALUES ('challenge_deadline', $1) ON CONFLICT (key) DO UPDATE SET value = $1", [deadline]);
+}
+
+async function setChallengeOpen(open) {
+  await pool.query("INSERT INTO settings (key, value) VALUES ('challenge_open', $1) ON CONFLICT (key) DO UPDATE SET value = $1", [open ? 'true' : 'false']);
+}
+
+async function saveChallengePicks(userId, picks) {
+  const { qf, sf, finalists, champion } = picks;
+  await pool.query(`
+    INSERT INTO challenge_picks (user_id, qf, sf, finalists, champion, updated_at)
+    VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+    ON CONFLICT (user_id)
+    DO UPDATE SET qf = $2, sf = $3, finalists = $4, champion = $5, updated_at = CURRENT_TIMESTAMP
+  `, [userId, qf, sf, finalists, champion]);
+}
+
+async function getChallengePicks(userId) {
+  const result = await pool.query('SELECT * FROM challenge_picks WHERE user_id = $1', [userId]);
+  return result.rows[0] || null;
+}
+
+async function getAllChallengePicks() {
+  const result = await pool.query(`
+    SELECT cp.*, u.name AS user_name
+    FROM challenge_picks cp
+    JOIN users u ON cp.user_id = u.id
+    ORDER BY u.name ASC
+  `);
+  return result.rows;
+}
+
+async function setChallengeResults(round, teams) {
+  await pool.query('DELETE FROM challenge_results WHERE round = $1', [round]);
+  for (const team of teams) {
+    await pool.query('INSERT INTO challenge_results (round, team) VALUES ($1, $2)', [round, team]);
+  }
+}
+
+async function getChallengeResults() {
+  const result = await pool.query('SELECT * FROM challenge_results ORDER BY round, team');
+  return result.rows;
+}
+
+async function calculateChallengePoints() {
+  const results = await pool.query('SELECT * FROM challenge_results');
+  const resultsByRound = {};
+  for (const row of results.rows) {
+    if (!resultsByRound[row.round]) resultsByRound[row.round] = [];
+    resultsByRound[row.round].push(row.team);
+  }
+
+  const picks = await pool.query('SELECT * FROM challenge_picks');
+  const pointsMap = {};
+  for (const pick of picks.rows) {
+    let points = 0;
+    if (resultsByRound['qf'] && pick.qf) {
+      points += pick.qf.filter(t => resultsByRound['qf'].includes(t)).length * 5;
+    }
+    if (resultsByRound['sf'] && pick.sf) {
+      points += pick.sf.filter(t => resultsByRound['sf'].includes(t)).length * 10;
+    }
+    if (resultsByRound['finalists'] && pick.finalists) {
+      points += pick.finalists.filter(t => resultsByRound['finalists'].includes(t)).length * 15;
+    }
+    if (resultsByRound['champion'] && pick.champion) {
+      if (resultsByRound['champion'].includes(pick.champion)) points += 20;
+    }
+    pointsMap[pick.user_id] = points;
+    await pool.query('UPDATE users SET challenge_points = $1 WHERE id = $2', [points, pick.user_id]);
+  }
+  return pointsMap;
 }
 
 async function getGroupStandings() {
@@ -799,12 +909,12 @@ async function getLeaderboardStats() {
           END
         ELSE 0
       END
-    ), 0) + COALESCE(u.manual_points, 0) AS total
+    ), 0) + COALESCE(u.manual_points, 0) + COALESCE(u.challenge_points, 0) AS total
     FROM users u
     LEFT JOIN predictions p ON u.id = p.user_id
     LEFT JOIN matches m ON p.match_id = m.id
     WHERE u.role != 'admin' AND u.status = 'approved'
-    GROUP BY u.id, u.name, u.manual_points
+    GROUP BY u.id, u.name, u.manual_points, u.challenge_points
     ORDER BY total DESC LIMIT 1
   `);
 
@@ -957,6 +1067,15 @@ module.exports = {
   getLeaderboard,
   getLeaderboardStats,
   updateManualPoints,
+  getChallengeConfig,
+  setChallengeDeadline,
+  setChallengeOpen,
+  saveChallengePicks,
+  getChallengePicks,
+  getAllChallengePicks,
+  setChallengeResults,
+  getChallengeResults,
+  calculateChallengePoints,
   getGroupStandings,
   calculateGroupStandings,
   calculatePoints,

@@ -121,6 +121,7 @@ const navItems = [
   { id: 'my-predictions', label: 'توقعاتي', url: '/my-predictions', icon: 'list' },
   { id: 'players-predictions', label: 'توقعات المتسابقين', url: '/players-predictions', icon: 'users' },
   { id: 'leaderboard', label: 'الترتيب', url: '/leaderboard', icon: 'trophy' },
+  { id: 'challenge', label: 'التحدي', url: '/challenge', icon: 'trophy' },
   { id: 'rules', label: 'نظام المسابقة', url: '/rules', icon: 'rules' },
   { id: 'news', label: 'أخبار كأس العالم', url: '/news', icon: 'news' },
   { id: 'dashboard', label: 'لوحة التحكم', url: '/dashboard', icon: 'dashboard', adminOnly: true }
@@ -492,6 +493,39 @@ app.get('/leaderboard', requireAuth, async (req, res) => {
   }
 });
 
+// ===== Challenge Game =====
+app.get('/challenge', requireAuth, async (req, res) => {
+  try {
+    if (req.user.status !== 'approved') return res.redirect('/pending');
+    const config = await db.getChallengeConfig();
+    const picks = await db.getChallengePicks(req.user.id);
+    const teams = Object.values(db.getGroups()).flat();
+    const top3 = (await db.getLeaderboard()).slice(0, 3);
+    const teamFlags = db.getTeamFlags();
+    res.render('challenge', { user: req.user, config, picks, teams, top3, teamFlags, saved: req.query.saved === '1' });
+  } catch (err) {
+    console.error('Challenge error:', err);
+    res.status(500).render('error', { message: 'حدث خطأ في تحميل صفحة التحدي' });
+  }
+});
+
+app.post('/challenge/save', requireAuth, async (req, res) => {
+  try {
+    const config = await db.getChallengeConfig();
+    if (!config.open) return res.redirect('/challenge');
+    const { qf, sf, finalists, champion } = req.body;
+    if (!Array.isArray(qf) || qf.length !== 8) return res.redirect('/challenge');
+    if (!Array.isArray(sf) || sf.length !== 4) return res.redirect('/challenge');
+    if (!Array.isArray(finalists) || finalists.length !== 2) return res.redirect('/challenge');
+    if (!champion) return res.redirect('/challenge');
+    await db.saveChallengePicks(req.user.id, { qf, sf, finalists, champion });
+    res.redirect('/challenge?saved=1');
+  } catch (err) {
+    console.error('Challenge save error:', err);
+    res.redirect('/challenge');
+  }
+});
+
 // ===== Admin News Routes =====
 app.post('/admin/news/add', requireAuth, requireAdmin, adminLimiter, newsUpload.single('image'), async (req, res) => {
   try {
@@ -756,7 +790,9 @@ app.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
     const activeTab = req.query.tab || 'players';
     const newsItems = await db.getNews();
     const allComments = await db.getAllComments();
-    res.render('dashboard', { user: req.user, matches, leaderboard: leaderboardWithMissed, pendingUsers, allUsers, currentRound, publishedRounds, matchesByRound, visiblePredictions, hiddenPredictions, matchPredictions, groups, teamFlags, activeTab, newsItems, allComments, message: null });
+    const config = await db.getChallengeConfig();
+    const challengePicks = await db.getAllChallengePicks();
+    res.render('dashboard', { user: req.user, matches, leaderboard: leaderboardWithMissed, pendingUsers, allUsers, currentRound, publishedRounds, matchesByRound, visiblePredictions, hiddenPredictions, matchPredictions, groups, teamFlags, activeTab, newsItems, allComments, message: null, config, challengePicks });
   } catch (err) {
     console.error('Dashboard error:', err);
     res.status(500).render('error', { message: 'حدث خطأ في تحميل لوحة التحكم' });
@@ -845,6 +881,45 @@ app.post('/admin/change-password', requireAuth, requireAdmin, adminLimiter, asyn
     console.error('Change password error:', err);
     res.status(500).render('error', { message: 'حدث خطأ أثناء تغيير كلمة المرور' });
   }
+});
+
+// ===== Admin Challenge =====
+app.post('/admin/challenge/deadline', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
+  try {
+    const { deadline } = req.body;
+    await db.setChallengeDeadline(deadline);
+    res.redirect('/dashboard?tab=challenge');
+  } catch (err) { console.error(err); res.redirect('/dashboard?tab=challenge'); }
+});
+
+app.post('/admin/challenge/open', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
+  try {
+    await db.setChallengeOpen(true);
+    res.redirect('/dashboard?tab=challenge');
+  } catch (err) { console.error(err); res.redirect('/dashboard?tab=challenge'); }
+});
+
+app.post('/admin/challenge/close', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
+  try {
+    await db.setChallengeOpen(false);
+    res.redirect('/dashboard?tab=challenge');
+  } catch (err) { console.error(err); res.redirect('/dashboard?tab=challenge'); }
+});
+
+app.post('/admin/challenge/results', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
+  try {
+    const { round, teams } = req.body;
+    const teamList = Array.isArray(teams) ? teams : (teams ? [teams] : []);
+    await db.setChallengeResults(round, teamList);
+    res.redirect('/dashboard?tab=challenge');
+  } catch (err) { console.error(err); res.redirect('/dashboard?tab=challenge'); }
+});
+
+app.post('/admin/challenge/calculate', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
+  try {
+    await db.calculateChallengePoints();
+    res.redirect('/dashboard?tab=challenge');
+  } catch (err) { console.error(err); res.redirect('/dashboard?tab=challenge'); }
 });
 
 // ===== 404 Handler =====
