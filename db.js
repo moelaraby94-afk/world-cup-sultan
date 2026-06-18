@@ -1289,27 +1289,34 @@ async function initNewsTable() {
     )
   `);
 
-  // Migrate old file-path images (e.g. /uploads/news-xxx.jpg) to base64
-  const migCheck = await pool.query("SELECT value FROM settings WHERE key = 'news_img_mig_v1'");
-  if (migCheck.rows.length === 0) {
-    const oldNews = await pool.query("SELECT id, image_path FROM news WHERE image_path LIKE '/uploads/%'");
-    for (const row of oldNews.rows) {
-      const relativePath = row.image_path.replace(/^\//, '');
-      const filePath = path.join(__dirname, '..', 'public', relativePath);
+  // Migration v2: convert base64 images to files on disk
+  const migV2 = await pool.query("SELECT value FROM settings WHERE key = 'news_img_mig_v2'");
+  if (migV2.rows.length === 0) {
+    const uploadsDir = path.join(__dirname, '..', 'public', 'uploads', 'news');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    const b64News = await pool.query("SELECT id, image_path FROM news WHERE image_path LIKE 'data:%'");
+    let converted = 0;
+    for (const row of b64News.rows) {
       try {
-        const data = fs.readFileSync(filePath);
-        const ext = path.extname(row.image_path).toLowerCase();
-        const mimeMap = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.gif': 'image/gif', '.webp': 'image/webp' };
-        const mime = mimeMap[ext] || 'image/jpeg';
-        const b64 = data.toString('base64');
-        await pool.query('UPDATE news SET image_path=$1 WHERE id=$2', ['data:' + mime + ';base64,' + b64, row.id]);
+        const matches = row.image_path.match(/^data:image\/(\w+);base64,(.+)$/);
+        if (!matches) { await pool.query('UPDATE news SET image_path=NULL WHERE id=$1', [row.id]); continue; }
+        const extMap = { jpeg: 'jpg', png: 'png', gif: 'gif', webp: 'webp' };
+        const ext = extMap[matches[1]] || 'jpg';
+        const filename = 'news_mig_' + row.id + '_' + Date.now() + '.' + ext;
+        const filePath = path.join(uploadsDir, filename);
+        fs.writeFileSync(filePath, Buffer.from(matches[2], 'base64'));
+        await pool.query('UPDATE news SET image_path=$1 WHERE id=$2', ['/uploads/news/' + filename, row.id]);
+        converted++;
       } catch (e) {
+        console.error('Failed to convert news id=' + row.id + ' image:', e.message);
         await pool.query('UPDATE news SET image_path=NULL WHERE id=$1', [row.id]);
       }
     }
-    await pool.query("INSERT INTO settings (key, value) VALUES ('news_img_mig_v1', '1')");
-    if (oldNews.rows.length > 0) {
-      console.log('Migration: converted ' + oldNews.rows.length + ' old news images to base64');
+    await pool.query("INSERT INTO settings (key, value) VALUES ('news_img_mig_v2', '1')");
+    if (converted > 0) {
+      console.log('Migration: saved ' + converted + ' news images to disk');
     }
   }
 }
@@ -1344,7 +1351,12 @@ async function addNews({ title, body, image_path, breaking }) {
 async function deleteNews(id) {
   await pool.query('DELETE FROM news_comments WHERE news_id=$1', [id]);
   const result = await pool.query('DELETE FROM news WHERE id=$1 RETURNING image_path', [id]);
-  return result.rows[0];
+  const row = result.rows[0];
+  if (row && row.image_path && row.image_path.startsWith('/uploads/')) {
+    const filePath = path.join(__dirname, '..', 'public', row.image_path.replace(/^\//, ''));
+    try { fs.unlinkSync(filePath); } catch (e) { /* file may not exist */ }
+  }
+  return row;
 }
 
 async function updateNews(id, { title, body, image_path, breaking }) {

@@ -1,4 +1,5 @@
 ﻿const express = require('express');
+const fs = require('fs');
 const path = require('path');
 const session = require('express-session');
 
@@ -11,10 +12,17 @@ const multer = require('multer');
 const db = require('./db');
 require('dotenv').config();
 
-// Image storage is in-database (base64) — no filesystem uploads directory needed
+const newsUploadDir = path.join(__dirname, 'public', 'uploads', 'news');
 
 const newsUpload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => { cb(null, newsUploadDir); },
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname) || '.jpg';
+      const name = 'news_' + new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 15) + '_' + Math.random().toString(36).slice(2, 6) + ext;
+      cb(null, name);
+    }
+  }),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) cb(null, true);
@@ -533,8 +541,7 @@ app.post('/admin/news/add', requireAuth, requireAdmin, adminLimiter, newsUpload.
     if (!title || !body) return res.redirect('/dashboard?tab=news');
     var image_path = null;
     if (req.file) {
-      var b64 = req.file.buffer.toString('base64');
-      image_path = 'data:' + req.file.mimetype + ';base64,' + b64;
+      image_path = '/uploads/news/' + req.file.filename;
     }
     await db.addNews({ title, body, image_path, breaking: breaking === 'on' });
     res.redirect('/dashboard?tab=news');
@@ -550,8 +557,7 @@ app.post('/admin/news/edit/:id', requireAuth, requireAdmin, adminLimiter, newsUp
     if (!title || !body) return res.redirect('/dashboard?tab=news');
     const updateData = { title, body, breaking: breaking === 'on' };
     if (req.file) {
-      var b64 = req.file.buffer.toString('base64');
-      updateData.image_path = 'data:' + req.file.mimetype + ';base64,' + b64;
+      updateData.image_path = '/uploads/news/' + req.file.filename;
     }
     await db.updateNews(req.params.id, updateData);
     res.redirect('/dashboard?tab=news');
@@ -563,7 +569,11 @@ app.post('/admin/news/edit/:id', requireAuth, requireAdmin, adminLimiter, newsUp
 
 app.post('/admin/news/delete/:id', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
-    await db.deleteNews(req.params.id);
+    const deleted = await db.deleteNews(req.params.id);
+    if (deleted && deleted.image_path && deleted.image_path.startsWith('/uploads/')) {
+      const filePath = path.join(__dirname, 'public', deleted.image_path.replace(/^\//, ''));
+      try { fs.unlinkSync(filePath); } catch (e) { /* file may not exist */ }
+    }
     res.redirect('/dashboard?tab=news');
   } catch (err) {
     console.error('Delete news error:', err);
@@ -934,6 +944,12 @@ app.use((err, req, res, next) => {
 });
 
 // ===== Start Server (بعد تهيئة قاعدة البيانات) =====
+// Ensure uploads/news directory exists
+if (!fs.existsSync(newsUploadDir)) {
+  fs.mkdirSync(newsUploadDir, { recursive: true });
+  console.log('✓ Created uploads/news directory');
+}
+
 db.init()
   .then(async () => {
     await db.initNewsTable();
