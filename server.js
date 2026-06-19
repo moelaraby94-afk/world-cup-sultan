@@ -153,6 +153,7 @@ async function requireAuth(req, res, next) {
     const user = await db.getUserById(req.session.userId);
     if (!user) return res.redirect('/login');
     req.user = user;
+    res.locals.unreadCount = await db.getUnreadNewsCount(user.id);
     next();
   } catch (err) {
     console.error('Auth error:', err);
@@ -587,6 +588,28 @@ app.post('/admin/news/delete/:id', requireAuth, requireAdmin, adminLimiter, asyn
 
 // ===== News Comments Routes =====
 const commentTimers = {};
+app.get('/api/news/readers/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const stats = await db.getNewsReadStats(req.params.id);
+    const unreadUsers = await db.getNewsUnreadUsers(req.params.id);
+    stats.unreadUsers = unreadUsers;
+    res.json(stats);
+  } catch (err) {
+    console.error('News readers error:', err);
+    res.status(500).json({ error: 'حدث خطأ' });
+  }
+});
+
+app.post('/news/read/:id', requireAuth, async (req, res) => {
+  try {
+    await db.markNewsAsRead(req.user.id, req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Mark news read error:', err);
+    res.status(500).json({ error: 'حدث خطأ' });
+  }
+});
+
 app.post('/news/comment', requireAuth, async (req, res) => {
   try {
     if (req.user.status !== 'approved') return res.status(403).json({ error: 'غير مصرح' });
@@ -806,7 +829,11 @@ app.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
     const allComments = await db.getAllComments();
     const config = await db.getChallengeConfig();
     const challengePicks = await db.getAllChallengePicks();
-    res.render('dashboard', { user: req.user, matches, leaderboard: leaderboardWithMissed, pendingUsers, allUsers, currentRound, publishedRounds, matchesByRound, visiblePredictions, hiddenPredictions, matchPredictions, groups, teamFlags, activeTab, newsItems, allComments, message: null, config, challengePicks });
+    const newsReadStats = {};
+    for (const item of newsItems) {
+      newsReadStats[item.id] = await db.getNewsReadStats(item.id);
+    }
+    res.render('dashboard', { user: req.user, matches, leaderboard: leaderboardWithMissed, pendingUsers, allUsers, currentRound, publishedRounds, matchesByRound, visiblePredictions, hiddenPredictions, matchPredictions, groups, teamFlags, activeTab, newsItems, allComments, message: null, config, challengePicks, newsReadStats });
   } catch (err) {
     console.error('Dashboard error:', err);
     res.status(500).render('error', { message: 'حدث خطأ في تحميل لوحة التحكم' });
@@ -958,6 +985,7 @@ db.init()
   .then(async () => {
     await db.initNewsTable();
     await db.initNewsCommentsTable();
+    await db.initNewsReadsTable();
     app.listen(PORT, () => {
       console.log(`✓ Server running on http://localhost:${PORT}`);
     });

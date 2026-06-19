@@ -447,6 +447,7 @@
         renderComments(nmNewsId);
         document.getElementById('news-modal').style.display = 'block';
         document.body.style.overflow = 'hidden';
+        fetch('/news/read/' + n.id, { method: 'POST', headers: { 'Content-Type': 'application/json' } }).catch(function(){});
       });
     });
     function closeNews() {

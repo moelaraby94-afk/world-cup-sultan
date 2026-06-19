@@ -708,6 +708,29 @@
                     </div>
                     <p class="news-admin-excerpt"><%= item.body.length>120 ? item.body.slice(0,120)+'...' : item.body %></p>
                     <span style="font-size:0.72rem;color:var(--text-secondary);"><%= new Date(item.created_at).toLocaleDateString('ar-EG',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) %></span>
+                    <% var rs = newsReadStats && newsReadStats[item.id]; if (rs) { %>
+                    <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">
+                      <span style="font-size:0.72rem;color:var(--text-secondary);">المشاركون: <strong style="color:var(--text);"><%= rs.total %></strong></span>
+                      <span style="font-size:0.72rem;color:#22c55e;">قرأ: <strong><%= rs.readCount %></strong></span>
+                      <span style="font-size:0.72rem;color:#ef4444;">لم يقرأ: <strong><%= rs.unreadCount %></strong></span>
+                      <span style="font-size:0.72rem;color:var(--primary);">نسبة القراءة: <strong><%= rs.readRate %>%</strong></span>
+                    </div>
+                    <div style="margin-top:6px;">
+                      <button class="db-btn" style="padding:3px 10px;font-size:0.7rem;background:transparent;border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text-secondary);font-weight:600;" onclick="toggleNewsReaders(<%= item.id %>)">📊 عرض التفاصيل</button>
+                      <div id="news-readers-<%= item.id %>" style="display:none;margin-top:6px;font-size:0.78rem;">
+                        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+                          <div>
+                            <div style="font-weight:700;color:#22c55e;margin-bottom:4px;">✅ قرأ الخبر</div>
+                            <div id="news-readers-ok-<%= item.id %>">جاري التحميل...</div>
+                          </div>
+                          <div>
+                            <div style="font-weight:700;color:#ef4444;margin-bottom:4px;">❌ لم يقرأ</div>
+                            <div id="news-readers-no-<%= item.id %>">جاري التحميل...</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <% } %>
                   </div>
                   <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
                     <button class="db-btn db-btn-edit-news" style="padding:5px 10px;font-size:0.75rem;background:var(--primary);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;"
@@ -996,6 +1019,32 @@
       document.body.style.overflow = '';
     }
     document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeEditNews(); });
+
+    function toggleNewsReaders(newsId) {
+      var el = document.getElementById('news-readers-' + newsId);
+      if (!el) return;
+      if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+      el.style.display = 'block';
+      var okEl = document.getElementById('news-readers-ok-' + newsId);
+      var noEl = document.getElementById('news-readers-no-' + newsId);
+      if (!okEl || !noEl) return;
+      okEl.textContent = 'جاري التحميل...';
+      noEl.textContent = 'جاري التحميل...';
+      fetch('/api/news/readers/' + newsId)
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          okEl.innerHTML = data.readers && data.readers.length > 0
+            ? data.readers.map(function(u){ return '<div>✅ ' + u.name + '</div>'; }).join('')
+            : '<div style="color:#94a3b8;">لا يوجد</div>';
+          noEl.innerHTML = data.unreadUsers && data.unreadUsers.length > 0
+            ? data.unreadUsers.map(function(u){ return '<div>❌ ' + u.name + '</div>'; }).join('')
+            : '<div style="color:#94a3b8;">الكل قرأ الخبر</div>';
+        })
+        .catch(function(){
+          okEl.textContent = 'فشل التحميل';
+          noEl.textContent = 'فشل التحميل';
+        });
+    }
 
     function dbTab(name, btn) {
       document.querySelectorAll('.db-panel').forEach(function(p){ p.classList.remove('active'); });

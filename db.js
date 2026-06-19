@@ -1120,6 +1120,11 @@ module.exports = {
   getGroups,
   initNewsTable,
   initNewsCommentsTable,
+  initNewsReadsTable,
+  markNewsAsRead,
+  getUnreadNewsCount,
+  getNewsReadStats,
+  getNewsUnreadUsers,
   getNews,
   addNews,
   deleteNews,
@@ -1371,6 +1376,72 @@ async function initNewsCommentsTable() {
   `);
   await pool.query('CREATE INDEX IF NOT EXISTS idx_news_comments_news_id ON news_comments(news_id)');
   await pool.query('CREATE INDEX IF NOT EXISTS idx_news_comments_user_id ON news_comments(user_id)');
+}
+
+async function initNewsReadsTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS news_reads (
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      news_id INTEGER NOT NULL REFERENCES news(id) ON DELETE CASCADE,
+      read_at TIMESTAMPTZ DEFAULT NOW(),
+      PRIMARY KEY (user_id, news_id)
+    )
+  `);
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_news_reads_user_id ON news_reads(user_id)');
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_news_reads_news_id ON news_reads(news_id)');
+}
+
+async function markNewsAsRead(userId, newsId) {
+  await pool.query(`
+    INSERT INTO news_reads (user_id, news_id, read_at)
+    VALUES ($1, $2, NOW())
+    ON CONFLICT (user_id, news_id) DO NOTHING
+  `, [userId, newsId]);
+}
+
+async function getUnreadNewsCount(userId) {
+  const result = await pool.query(`
+    SELECT COUNT(*) FROM news n
+    WHERE NOT EXISTS (
+      SELECT 1 FROM news_reads nr
+      WHERE nr.news_id = n.id AND nr.user_id = $1
+    )
+  `, [userId]);
+  return parseInt(result.rows[0].count) || 0;
+}
+
+async function getNewsReadStats(newsId) {
+  const totalUsers = await pool.query("SELECT COUNT(*) FROM users WHERE role != 'admin' AND status = 'approved'");
+  const total = parseInt(totalUsers.rows[0].count) || 0;
+  const readers = await pool.query(`
+    SELECT u.id, u.name, nr.read_at
+    FROM news_reads nr
+    JOIN users u ON nr.user_id = u.id
+    WHERE nr.news_id = $1
+    ORDER BY nr.read_at ASC
+  `, [newsId]);
+  const readCount = readers.rows.length;
+  return {
+    total,
+    readCount,
+    unreadCount: total - readCount,
+    readRate: total > 0 ? Math.round((readCount / total) * 100) : 0,
+    readers: readers.rows,
+    unreadUsers: null
+  };
+}
+
+async function getNewsUnreadUsers(newsId) {
+  const result = await pool.query(`
+    SELECT u.id, u.name FROM users u
+    WHERE u.role != 'admin' AND u.status = 'approved'
+    AND NOT EXISTS (
+      SELECT 1 FROM news_reads nr
+      WHERE nr.news_id = $1 AND nr.user_id = u.id
+    )
+    ORDER BY u.name ASC
+  `, [newsId]);
+  return result.rows;
 }
 
 async function getNews() {

@@ -414,6 +414,22 @@ footer {
   fill: currentColor;
 }
 
+.sidebar-news-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-right: auto;
+}
+
 .main-content {
   display: flex;
   flex-direction: column;
@@ -6998,6 +7014,21 @@ body.drawer-open {
 
 .msd-link-label {
   flex: 1;
+}
+
+.msd-news-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  margin-left: 8px;
 }
 
 /* Drawer Bottom: Logout */
