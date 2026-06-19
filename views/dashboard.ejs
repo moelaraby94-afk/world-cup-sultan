@@ -570,6 +570,13 @@
                       <input type="number" name="scoreA" min="0" max="99" value="<%= match.actual_scoreA !== null ? match.actual_scoreA : '' %>" placeholder="0" class="score-input" style="width:48px;">
                       <span>-</span>
                       <input type="number" name="scoreB" min="0" max="99" value="<%= match.actual_scoreB !== null ? match.actual_scoreB : '' %>" placeholder="0" class="score-input" style="width:48px;">
+                      <% if (match.round >= 4) { %>
+                      <select name="actualWinner" style="padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.78rem;font-weight:600;">
+                        <option value="">المتأهل</option>
+                        <option value="<%= match.teamA %>" <%= match.actual_winner === match.teamA ? 'selected' : '' %>><%= match.teamA %></option>
+                        <option value="<%= match.teamB %>" <%= match.actual_winner === match.teamB ? 'selected' : '' %>><%= match.teamB %></option>
+                      </select>
+                      <% } %>
                       <button type="submit" class="btn-save">حفظ</button>
                       <% if (match.actual_scoreA !== null) { %>
                       <button type="button" class="btn-clear" onclick="clearResult('<%= match.id %>')" title="مسح النتيجة">مسح</button>

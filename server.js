@@ -435,7 +435,8 @@ app.post('/predictions', requireAuth, async (req, res) => {
       return res.redirect('/predictions');
     }
     var existing = await db.getPrediction(req.user.id, match.id);
-    await db.savePrediction(req.user.id, match.id, a, b);
+    var predictedWinner = req.body.predictedWinner || null;
+    await db.savePrediction(req.user.id, match.id, a, b, predictedWinner);
     if (existing) {
       res.redirect('/predictions?msg=updated');
     } else {
@@ -830,7 +831,7 @@ app.post('/admin/knockout-teams/:id', requireAuth, requireAdmin, adminLimiter, a
 app.post('/matches/:id/result', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { scoreA, scoreB } = req.body;
+    const { scoreA, scoreB, actualWinner } = req.body;
     const match = await db.getMatchById(id);
     if (!match) return res.redirect('/dashboard?tab=results');
     
@@ -846,7 +847,7 @@ app.post('/matches/:id/result', requireAuth, requireAdmin, async (req, res) => {
     const a = parseInt(scoreA, 10);
     const b = parseInt(scoreB, 10);
     if (Number.isNaN(a) || Number.isNaN(b)) return res.redirect('/dashboard?tab=results');
-    await db.updateMatchResult(match.id, a, b);
+    await db.updateMatchResult(match.id, a, b, actualWinner || null);
     await db.calculateGroupStandings();
     // تقدم الفرق أوتوماتيك في الأدوار الإقصائية
     await db.advanceKnockoutTeams();

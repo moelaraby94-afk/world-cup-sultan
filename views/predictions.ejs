@@ -120,7 +120,7 @@
                 var valB = saved ? item.prediction.scoreB : 0;
                 var pc2Date = new Date(m.start_at).toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
               %>
-              <div class="pc2-card <%= locked && !ended ? 'pc2-card-locked' : '' %> <%= ended ? 'pc2-card-ended' : '' %> <%= saved && !ended ? 'pc2-card-saved' : '' %>" data-pc2-date="<%= pc2Date %>">
+              <div class="pc2-card <%= locked && !ended ? 'pc2-card-locked' : '' %> <%= ended ? 'pc2-card-ended' : '' %> <%= saved && !ended ? 'pc2-card-saved' : '' %>" id="pc2Card<%= m.id %>" data-pc2-date="<%= pc2Date %>">
 
                 <!-- Card Top: stage + date + time -->
                 <div class="pc2-card-top">
@@ -148,6 +148,9 @@
                       <span class="pc2-pred-num"><%= valA %></span>
                       <span class="pc2-score-dash">-</span>
                       <span class="pc2-pred-num"><%= valB %></span>
+                      <% if (m.round >= 4 && saved && item.prediction.predicted_winner) { %>
+                      <span style="font-size:0.7rem;font-weight:700;color:#16a34a;display:block;margin-top:2px;">المتأهل: <%= item.prediction.predicted_winner %></span>
+                      <% } %>
                     </div>
                     <% } else { %>
                     <div class="pc2-pred-none">
@@ -161,6 +164,9 @@
                       <span class="pc2-pred-num"><%= valA %></span>
                       <span class="pc2-score-dash">-</span>
                       <span class="pc2-pred-num"><%= valB %></span>
+                      <% if (m.round >= 4 && item.prediction.predicted_winner) { %>
+                      <span style="font-size:0.7rem;font-weight:700;color:#16a34a;display:block;margin-top:2px;">المتأهل: <%= item.prediction.predicted_winner %></span>
+                      <% } %>
                     </div>
                     <% } %>
                     <form method="POST" action="/predictions" class="pc2-form" id="pc2Form<%= m.id %>">
@@ -181,6 +187,25 @@
                         </div>
                       </div>
                     </form>
+
+                    <!-- Knockout winner picker -->
+                    <% if (m.round >= 4) { %>
+                    <div class="pc2-knockout-pick" style="margin-top:8px;text-align:center;padding:6px 0;border-top:1px solid var(--border);">
+                      <div style="font-size:0.75rem;font-weight:700;color:var(--text-secondary);margin-bottom:4px;">🏆 من يتأهل؟</div>
+                      <div style="display:flex;gap:6px;justify-content:center;">
+                        <label class="pc2-knockout-lbl" style="display:flex;align-items:center;gap:4px;padding:4px 12px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;transition:all 0.15s;background:var(--bg);<%= saved && item.prediction.predicted_winner === m.teamA ? 'border-color:#22c55e;background:rgba(34,197,94,0.08);' : '' %>" onclick="document.getElementById('pw<%= m.id %>A').click()">
+                          <input type="radio" name="predictedWinner" value="<%= m.teamA %>" id="pw<%= m.id %>A" form="pc2Form<%= m.id %>" style="display:none" <%= saved && item.prediction.predicted_winner === m.teamA ? 'checked' : '' %> onchange="document.querySelectorAll('#pc2Card<%= m.id %> .pc2-knockout-lbl').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--bg)'});this.parentElement.style.borderColor='#22c55e';this.parentElement.style.background='rgba(34,197,94,0.08)'">
+                          <img src="/flags/<%= teamFlags[m.teamA]||'unknown' %>.png" style="width:16px;height:16px;border-radius:2px;" onerror="this.style.display='none'">
+                          <span><%= m.teamA %></span>
+                        </label>
+                        <label class="pc2-knockout-lbl" style="display:flex;align-items:center;gap:4px;padding:4px 12px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;transition:all 0.15s;background:var(--bg);<%= saved && item.prediction.predicted_winner === m.teamB ? 'border-color:#22c55e;background:rgba(34,197,94,0.08);' : '' %>" onclick="document.getElementById('pw<%= m.id %>B').click()">
+                          <input type="radio" name="predictedWinner" value="<%= m.teamB %>" id="pw<%= m.id %>B" form="pc2Form<%= m.id %>" style="display:none" <%= saved && item.prediction.predicted_winner === m.teamB ? 'checked' : '' %> onchange="document.querySelectorAll('#pc2Card<%= m.id %> .pc2-knockout-lbl').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--bg)'});this.parentElement.style.borderColor='#22c55e';this.parentElement.style.background='rgba(34,197,94,0.08)'">
+                          <img src="/flags/<%= teamFlags[m.teamB]||'unknown' %>.png" style="width:16px;height:16px;border-radius:2px;" onerror="this.style.display='none'">
+                          <span><%= m.teamB %></span>
+                        </label>
+                      </div>
+                    </div>
+                    <% } %>
                   <% } %>
 
                   <!-- Team B -->
@@ -366,6 +391,9 @@
                     <div class="pr-pred-display">
                       <span class="pr-pred-label">توقعك:</span>
                       <span class="pr-pred-score"><%= itm.prediction.scoreA %>-<%= itm.prediction.scoreB %></span>
+                      <% if (itm.match.round >= 4 && itm.prediction.predicted_winner) { %>
+                      <span style="font-size:0.72rem;font-weight:700;color:#16a34a;margin-right:4px;">· المتأهل: <%= itm.prediction.predicted_winner %></span>
+                      <% } %>
                     </div>
                     <% } else if (ended) { %>
                     <div class="pr-pred-display pr-pred-missed">
@@ -373,6 +401,19 @@
                     </div>
                     <% } %>
                     <form method="POST" action="/predictions" class="pr-pred-form"><input type="hidden" name="matchId" value="<%= itm.match.id %>"><div class="pr-score-inputs"><input type="number" name="scoreA" value="<%= hasP ? itm.prediction.scoreA : '' %>" min="0" placeholder="0" required class="pr-score-input" <%= (lck||ended) ? 'disabled' : '' %>><span class="pr-score-sep">-</span><input type="number" name="scoreB" value="<%= hasP ? itm.prediction.scoreB : '' %>" min="0" placeholder="0" required class="pr-score-input" <%= (lck||ended) ? 'disabled' : '' %>></div>
+                    <% if (itm.match.round >= 4) { %>
+                    <div style="display:flex;align-items:center;gap:4px;margin:4px 0 0;font-size:0.72rem;">
+                      <span style="font-weight:700;color:var(--text-secondary);white-space:nowrap;">🏆 متأهل:</span>
+                      <label style="display:flex;align-items:center;gap:3px;padding:2px 8px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.12s;<%= hasP && itm.prediction.predicted_winner === itm.match.teamA ? 'border-color:#22c55e;background:rgba(34,197,94,0.08);' : '' %>" onclick="event.stopPropagation();this.querySelector('input').click()">
+                        <input type="radio" name="predictedWinner" value="<%= itm.match.teamA %>" style="display:none" <%= hasP && itm.prediction.predicted_winner === itm.match.teamA ? 'checked' : '' %> <%= (lck||ended) ? 'disabled' : '' %> onchange="var p=this.closest('.pr-pred-form');p.querySelectorAll('label').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='transparent'});this.parentElement.style.borderColor='#22c55e';this.parentElement.style.background='rgba(34,197,94,0.08)'">
+                        <span style="font-size:0.72rem;"><%= itm.match.teamA %></span>
+                      </label>
+                      <label style="display:flex;align-items:center;gap:3px;padding:2px 8px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.12s;<%= hasP && itm.prediction.predicted_winner === itm.match.teamB ? 'border-color:#22c55e;background:rgba(34,197,94,0.08);' : '' %>" onclick="event.stopPropagation();this.querySelector('input').click()">
+                        <input type="radio" name="predictedWinner" value="<%= itm.match.teamB %>" style="display:none" <%= hasP && itm.prediction.predicted_winner === itm.match.teamB ? 'checked' : '' %> <%= (lck||ended) ? 'disabled' : '' %> onchange="var p=this.closest('.pr-pred-form');p.querySelectorAll('label').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='transparent'});this.parentElement.style.borderColor='#22c55e';this.parentElement.style.background='rgba(34,197,94,0.08)'">
+                        <span style="font-size:0.72rem;"><%= itm.match.teamB %></span>
+                      </label>
+                    </div>
+                    <% } %>
                     <% if (lck||ended) { %><span class="pr-status-btn pr-status-locked">مقفل</span>
                     <% } else if (hasP) { %><button type="submit" class="pr-save-btn">تعديل</button><span class="pr-status-btn pr-status-predicted">تم التوقع</span>
                     <% } else { %><button type="submit" class="pr-save-btn">حفظ</button><span class="pr-status-btn pr-status-open">متاح</span><% } %>

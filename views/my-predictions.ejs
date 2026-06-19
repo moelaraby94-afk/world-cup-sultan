@@ -277,7 +277,7 @@
                   <div class="prediction-body">
                     <div class="prediction-detail">
                       <div class="detail-label">توقعت</div>
-                      <div class="detail-value"><%= p.teamA %> <%= p.scoreA %> - <%= p.teamB %> <%= p.scoreB %></div>
+                      <div class="detail-value"><%= p.teamA %> <%= p.scoreA %> - <%= p.teamB %> <%= p.scoreB %><% if (p.round >= 4 && p.predicted_winner) { %> · المتأهل: <%= p.predicted_winner %><% } %></div>
                     </div>
                     <div class="prediction-detail">
                       <div class="detail-label">النتيجة</div>

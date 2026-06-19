@@ -278,6 +278,10 @@ async function init() {
     await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS manual_points INTEGER DEFAULT 0");
     await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS challenge_points INTEGER DEFAULT 0");
 
+    // Safe migration: knockout winner pick columns
+    await client.query("ALTER TABLE predictions ADD COLUMN IF NOT EXISTS predicted_winner VARCHAR(100)");
+    await client.query("ALTER TABLE matches ADD COLUMN IF NOT EXISTS actual_winner VARCHAR(100)");
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS challenge_picks (
         id SERIAL PRIMARY KEY,
@@ -593,14 +597,14 @@ async function getMatchById(matchId) {
   return normalizeMatch(result.rows[0]) || null;
 }
 
-async function savePrediction(userId, matchId, scoreA, scoreB) {
+async function savePrediction(userId, matchId, scoreA, scoreB, predictedWinner) {
   const result = await pool.query(`
-    INSERT INTO predictions (user_id, match_id, scoreA, scoreB, updated_at)
-    VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+    INSERT INTO predictions (user_id, match_id, scoreA, scoreB, predicted_winner, updated_at)
+    VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
     ON CONFLICT (user_id, match_id)
-    DO UPDATE SET scoreA = $3, scoreB = $4, updated_at = CURRENT_TIMESTAMP
+    DO UPDATE SET scoreA = $3, scoreB = $4, predicted_winner = COALESCE($5, predictions.predicted_winner), updated_at = CURRENT_TIMESTAMP
     RETURNING *
-  `, [userId, matchId, scoreA, scoreB]);
+  `, [userId, matchId, scoreA, scoreB, predictedWinner || null]);
   return result.rows[0];
 }
 
@@ -642,11 +646,18 @@ async function updateKnockoutTeams(matchId, teamA, teamB) {
   );
 }
 
-async function updateMatchResult(matchId, scoreA, scoreB) {
-  await pool.query(
-    'UPDATE matches SET actual_scoreA = $1, actual_scoreB = $2 WHERE id = $3',
-    [scoreA, scoreB, matchId]
-  );
+async function updateMatchResult(matchId, scoreA, scoreB, actualWinner) {
+  if (scoreA === null && scoreB === null) {
+    await pool.query(
+      'UPDATE matches SET actual_scoreA = NULL, actual_scoreB = NULL, actual_winner = NULL WHERE id = $1',
+      [matchId]
+    );
+  } else {
+    await pool.query(
+      'UPDATE matches SET actual_scoreA = $1, actual_scoreB = $2, actual_winner = COALESCE($3, actual_winner) WHERE id = $4',
+      [scoreA, scoreB, actualWinner || null, matchId]
+    );
+  }
 }
 
 async function getLeaderboard() {
@@ -1015,7 +1026,8 @@ function normalizePrediction(row) {
     start_at: row.start_at || null,
     actual_scoreA: row.actual_scorea != null ? row.actual_scorea : (row.actual_scoreA != null ? row.actual_scoreA : null),
     actual_scoreB: row.actual_scoreb != null ? row.actual_scoreb : (row.actual_scoreB != null ? row.actual_scoreB : null),
-    user_name: row.user_name || row.username || null
+    user_name: row.user_name || row.username || null,
+    predicted_winner: row.predicted_winner || row.predictedwinner || null
   };
 }
 
