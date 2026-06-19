@@ -14,6 +14,29 @@
     .pp-dash-desktop { font-size:1.1rem; font-weight:900; color:#94a3b8; }
     .pp-no-pred-text { color:#ef4444; font-size:0.78rem; font-weight:700; }
     .pp-pred-no-score { color:#ef4444; font-size:0.85rem; font-weight:700; white-space:nowrap; }
+    /* Hero background for mobile header */
+    .pp-header-bg {
+      background: linear-gradient(rgba(255,255,255,0.70), rgba(255,255,255,0.85)), url('/images/leaderboard-bg.png') center top / cover no-repeat !important;
+      opacity: 1 !important;
+    }
+    .pp-header-bg::after { display: none !important; }
+    .pp-header::after { display: none !important; }
+    .pp-header-title {
+      background: linear-gradient(90deg, #1D4ED8, #7C3AED) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      background-clip: text !important;
+      color: transparent !important;
+      font-size: 32px !important; font-weight: 900 !important; margin: 0 0 8px !important;
+    }
+    .pp-header-sub { color: #64748B !important; }
+    /* Hero background for desktop header */
+    .pp-desktop .pp-topbar {
+      background: linear-gradient(rgba(255,255,255,0.70), rgba(255,255,255,0.85)), url('/images/leaderboard-bg.png') center top / cover no-repeat;
+      padding: 28px 24px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+    }
   </style>
 </head>
 <body>
