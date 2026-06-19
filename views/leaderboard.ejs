@@ -35,23 +35,24 @@
   z-index: 1;
 }
 .lb-section {
-  background:
-    linear-gradient(180deg, #EAF6FF 0%, #FFFFFF 45%, #F7FAFF 100%);
+  background: #F7FAFF;
   position: relative;
   overflow: hidden;
 }
-/* stadium overlay */
-.lb-section::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 280px;
+/* hero section: image background with white overlay */
+.lb-hero {
   background:
-    radial-gradient(ellipse 120% 100px at 50% 0%, rgba(37,99,235,0.07) 0%, transparent 70%),
-    radial-gradient(ellipse 80% 80px at 30% 20%, rgba(96,165,250,0.05) 0%, transparent 70%),
-    radial-gradient(ellipse 90% 90px at 70% 10%, rgba(124,58,237,0.04) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
+    linear-gradient(rgba(255,255,255,0.70), rgba(255,255,255,0.85)),
+    url('/images/leaderboard-bg.png') center top / cover no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+.lb-hero-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 12px 10px;
+  position: relative;
+  z-index: 1;
 }
 /* confetti pieces */
 .lb-confetti {
@@ -632,12 +633,13 @@
 </style>
 
 <div class="lb-section">
-<div class="lb-confetti">
-  <span></span><span></span><span></span><span></span><span></span>
-  <span></span><span></span><span></span><span></span><span></span>
-</div>
 
-<div class="lb-wrap">
+  <div class="lb-hero">
+  <div class="lb-hero-inner">
+  <div class="lb-confetti">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
 
   <!-- ===== HEADER ===== -->
   <div class="lb-header">
@@ -708,6 +710,10 @@
     <div class="lb-pod-card lb-pod-bronze lb-pod-empty"><div class="lb-pod-name" style="margin-top:20px;">—</div></div>
     <% } %>
   </div>
+  </div><!-- /lb-hero-inner -->
+  </div><!-- /lb-hero -->
+
+  <div class="lb-wrap">
 
   <!-- ===== MY RANK ===== -->
   <% if (userEntry) { %>
