@@ -7751,6 +7751,22 @@ body.drawer-open {
     margin-bottom: 20px;
   }
   .hm2-date svg { flex-shrink: 0; }
+  .hm2-news-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #ef4444;
+    text-decoration: none;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .hm2-news-badge:hover { background: rgba(239,68,68,0.25); }
 
   /* Stats Cards */
   .hm2-stats {
