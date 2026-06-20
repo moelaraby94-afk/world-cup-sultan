@@ -5612,6 +5612,12 @@ footer {
     justify-content: space-between; margin-bottom: 14px;
   }
   .pc2-logo { display: flex; align-items: center; justify-content: center; }
+  .pc2-menu-btn {
+    width: 40px; height: 40px; border: none; border-radius: 12px;
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .pc2-menu-btn svg { width: 22px; height: 22px; }
   .pc2-guide-btn {
     display: flex; align-items: center; gap: 5px;
     font-size: 12px; font-weight: 700; color: #F59E0B;
