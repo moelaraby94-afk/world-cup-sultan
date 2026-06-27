@@ -27,49 +27,80 @@ const GROUPS = {
   'المجموعة L': ['إنجلترا', 'كرواتيا', 'غانا', 'بنما']
 };
 
-// الجدول الرسمي لمسارات الأدوار الإقصائية — ثابت ولا يتغير
-// teamA_slot_type / teamB_slot_type: 'group_first', 'group_second', 'best_third', 'winner_from'
-// best_third_index: 1-8 معناه خانة ثالث يتم تسكينها يدوياً
+// الجدول الرسمي لمسارات الأدوار الإقصائية — مطابق لـ FIFA 2026
+// ترتيب المباريات حسب generateFixtures (تسلسل ID)
+// مسارات الفائزين حسب الجدول الرسمي للبطولة
 const BRACKET_SLOTS = {
   round4: [ // دور الـ 32 — 16 مباراة
-    { label: 'R32-01', teamA: { type: 'group_second', group: 'A' }, teamB: { type: 'group_second', group: 'B' }, winnerTo: 'R16-01', side: 'teamA' },
-    { label: 'R32-02', teamA: { type: 'group_first', group: 'C' }, teamB: { type: 'group_second', group: 'F' }, winnerTo: 'R16-01', side: 'teamB' },
-    { label: 'R32-03', teamA: { type: 'group_first', group: 'E' }, teamB: { type: 'best_third', index: 1 }, winnerTo: 'R16-03', side: 'teamA' },
-    { label: 'R32-04', teamA: { type: 'group_first', group: 'F' }, teamB: { type: 'group_second', group: 'C' }, winnerTo: 'R16-03', side: 'teamB' },
-    { label: 'R32-05', teamA: { type: 'group_second', group: 'E' }, teamB: { type: 'group_second', group: 'I' }, winnerTo: 'R16-02', side: 'teamA' },
-    { label: 'R32-06', teamA: { type: 'group_first', group: 'I' }, teamB: { type: 'best_third', index: 2 }, winnerTo: 'R16-02', side: 'teamB' },
+    // M49 / FIFA M73: ثاني A vs ثاني B → R16-02 teamA
+    { label: 'R32-01', teamA: { type: 'group_second', group: 'A' }, teamB: { type: 'group_second', group: 'B' }, winnerTo: 'R16-02', side: 'teamA' },
+    // M50 / FIFA M76: أول C vs ثاني F → R16-03 teamA
+    { label: 'R32-02', teamA: { type: 'group_first', group: 'C' }, teamB: { type: 'group_second', group: 'F' }, winnerTo: 'R16-03', side: 'teamA' },
+    // M51 / FIFA M74: أول E vs BestThird → R16-01 teamA
+    { label: 'R32-03', teamA: { type: 'group_first', group: 'E' }, teamB: { type: 'best_third', index: 1 }, winnerTo: 'R16-01', side: 'teamA' },
+    // M52 / FIFA M75: أول F vs ثاني C → R16-02 teamB
+    { label: 'R32-04', teamA: { type: 'group_first', group: 'F' }, teamB: { type: 'group_second', group: 'C' }, winnerTo: 'R16-02', side: 'teamB' },
+    // M53 / FIFA M78: ثاني E vs ثاني I → R16-03 teamB
+    { label: 'R32-05', teamA: { type: 'group_second', group: 'E' }, teamB: { type: 'group_second', group: 'I' }, winnerTo: 'R16-03', side: 'teamB' },
+    // M54 / FIFA M77: أول I vs BestThird → R16-01 teamB
+    { label: 'R32-06', teamA: { type: 'group_first', group: 'I' }, teamB: { type: 'best_third', index: 2 }, winnerTo: 'R16-01', side: 'teamB' },
+    // M55 / FIFA M79: أول A vs BestThird → R16-04 teamA
     { label: 'R32-07', teamA: { type: 'group_first', group: 'A' }, teamB: { type: 'best_third', index: 3 }, winnerTo: 'R16-04', side: 'teamA' },
+    // M56 / FIFA M80: أول L vs BestThird → R16-04 teamB
     { label: 'R32-08', teamA: { type: 'group_first', group: 'L' }, teamB: { type: 'best_third', index: 4 }, winnerTo: 'R16-04', side: 'teamB' },
-    { label: 'R32-09', teamA: { type: 'group_first', group: 'G' }, teamB: { type: 'best_third', index: 5 }, winnerTo: 'R16-05', side: 'teamA' },
-    { label: 'R32-10', teamA: { type: 'group_first', group: 'D' }, teamB: { type: 'best_third', index: 6 }, winnerTo: 'R16-05', side: 'teamB' },
-    { label: 'R32-11', teamA: { type: 'group_first', group: 'H' }, teamB: { type: 'group_second', group: 'J' }, winnerTo: 'R16-06', side: 'teamA' },
-    { label: 'R32-12', teamA: { type: 'group_second', group: 'K' }, teamB: { type: 'group_second', group: 'L' }, winnerTo: 'R16-06', side: 'teamB' },
-    { label: 'R32-13', teamA: { type: 'group_first', group: 'B' }, teamB: { type: 'best_third', index: 7 }, winnerTo: 'R16-07', side: 'teamA' },
+    // M57 / FIFA M82: أول G vs BestThird → R16-06 teamB
+    { label: 'R32-09', teamA: { type: 'group_first', group: 'G' }, teamB: { type: 'best_third', index: 5 }, winnerTo: 'R16-06', side: 'teamB' },
+    // M58 / FIFA M81: أول D vs BestThird → R16-06 teamA
+    { label: 'R32-10', teamA: { type: 'group_first', group: 'D' }, teamB: { type: 'best_third', index: 6 }, winnerTo: 'R16-06', side: 'teamA' },
+    // M59 / FIFA M84: أول H vs ثاني J → R16-05 teamB
+    { label: 'R32-11', teamA: { type: 'group_first', group: 'H' }, teamB: { type: 'group_second', group: 'J' }, winnerTo: 'R16-05', side: 'teamB' },
+    // M60 / FIFA M83: ثاني K vs ثاني L → R16-05 teamA
+    { label: 'R32-12', teamA: { type: 'group_second', group: 'K' }, teamB: { type: 'group_second', group: 'L' }, winnerTo: 'R16-05', side: 'teamA' },
+    // M61 / FIFA M85: أول B vs BestThird → R16-08 teamA
+    { label: 'R32-13', teamA: { type: 'group_first', group: 'B' }, teamB: { type: 'best_third', index: 7 }, winnerTo: 'R16-08', side: 'teamA' },
+    // M62 / FIFA M88: ثاني D vs ثاني G → R16-07 teamB
     { label: 'R32-14', teamA: { type: 'group_second', group: 'D' }, teamB: { type: 'group_second', group: 'G' }, winnerTo: 'R16-07', side: 'teamB' },
-    { label: 'R32-15', teamA: { type: 'group_first', group: 'J' }, teamB: { type: 'group_second', group: 'H' }, winnerTo: 'R16-08', side: 'teamA' },
+    // M63 / FIFA M86: أول J vs ثاني H → R16-07 teamA
+    { label: 'R32-15', teamA: { type: 'group_first', group: 'J' }, teamB: { type: 'group_second', group: 'H' }, winnerTo: 'R16-07', side: 'teamA' },
+    // M64 / FIFA M87: أول K vs BestThird → R16-08 teamB
     { label: 'R32-16', teamA: { type: 'group_first', group: 'K' }, teamB: { type: 'best_third', index: 8 }, winnerTo: 'R16-08', side: 'teamB' },
   ],
-  round5: [ // دور الـ 16
+  round5: [ // دور الـ 16 — حسب ترتيب المباريات في generateFixtures
+    // M65 / FIFA M89: فائز R32-03 vs فائز R32-06 → QF-01 teamA
     { label: 'R16-01', winnerTo: 'QF-01', side: 'teamA' },
+    // M66 / FIFA M90: فائز R32-01 vs فائز R32-04 → QF-01 teamB
     { label: 'R16-02', winnerTo: 'QF-01', side: 'teamB' },
-    { label: 'R16-03', winnerTo: 'QF-02', side: 'teamA' },
-    { label: 'R16-04', winnerTo: 'QF-02', side: 'teamB' },
-    { label: 'R16-05', winnerTo: 'QF-03', side: 'teamA' },
-    { label: 'R16-06', winnerTo: 'QF-03', side: 'teamB' },
+    // M67 / FIFA M91: فائز R32-02 vs فائز R32-05 → QF-03 teamA
+    { label: 'R16-03', winnerTo: 'QF-03', side: 'teamA' },
+    // M68 / FIFA M92: فائز R32-07 vs فائز R32-08 → QF-03 teamB
+    { label: 'R16-04', winnerTo: 'QF-03', side: 'teamB' },
+    // M69 / FIFA M93: فائز R32-12 vs فائز R32-11 → QF-02 teamA
+    { label: 'R16-05', winnerTo: 'QF-02', side: 'teamA' },
+    // M70 / FIFA M94: فائز R32-10 vs فائز R32-09 → QF-02 teamB
+    { label: 'R16-06', winnerTo: 'QF-02', side: 'teamB' },
+    // M71 / FIFA M95: فائز R32-15 vs فائز R32-14 → QF-04 teamA
     { label: 'R16-07', winnerTo: 'QF-04', side: 'teamA' },
+    // M72 / FIFA M96: فائز R32-13 vs فائز R32-16 → QF-04 teamB
     { label: 'R16-08', winnerTo: 'QF-04', side: 'teamB' },
   ],
   round6: [ // ربع النهائي
+    // M73 / FIFA M97: فائز R16-01 vs فائز R16-02 → SF-01 teamA
     { label: 'QF-01', winnerTo: 'SF-01', side: 'teamA' },
+    // M74 / FIFA M98: فائز R16-05 vs فائز R16-06 → SF-01 teamB
     { label: 'QF-02', winnerTo: 'SF-01', side: 'teamB' },
+    // M75 / FIFA M99: فائز R16-03 vs فائز R16-04 → SF-02 teamA
     { label: 'QF-03', winnerTo: 'SF-02', side: 'teamA' },
+    // M76 / FIFA M100: فائز R16-07 vs فائز R16-08 → SF-02 teamB
     { label: 'QF-04', winnerTo: 'SF-02', side: 'teamB' },
   ],
   round7: [ // نصف النهائي
+    // M77 / FIFA M101: فائز QF-01 vs فائز QF-02 → FINAL teamA
     { label: 'SF-01', winnerTo: 'FINAL', side: 'teamA' },
+    // M78 / FIFA M102: فائز QF-03 vs فائز QF-04 → FINAL teamB
     { label: 'SF-02', winnerTo: 'FINAL', side: 'teamB' },
   ],
   round8: [ // النهائي
+    // M79 / FIFA M104: فائز SF-01 vs فائز SF-02
     { label: 'FINAL', winnerTo: null, side: null },
   ],
 };
@@ -1282,7 +1313,8 @@ module.exports = {
   getRound32Pairings,
   confirmRound32,
   getKnockoutBracketStatus,
-  rebuildKnockoutRounds
+  rebuildKnockoutRounds,
+  verifyKnockoutBracket
 };
 
 // ===== AUTO CHALLENGE RESULTS (استخراج المنتخبات المتأهلة تلقائياً) =====
@@ -2027,25 +2059,150 @@ async function getKnockoutBracketStatus() {
 
 // إعادة بناء الأدوار الإقصائية بالكامل
 async function rebuildKnockoutRounds() {
-  // حذف علامة الاعتماد
+  // التحقق: لا توجد توقعات على مباريات الإقصائيات المنشورة
+  const publishedRounds = await getPublishedRounds();
+  const koRounds = [4, 5, 6, 7, 8];
+  const publishedKoRounds = koRounds.filter(r => publishedRounds.includes(r));
+  if (publishedKoRounds.length > 0) {
+    const pubCheck = await pool.query(
+      'SELECT COUNT(*) FROM predictions p JOIN matches m ON p.match_id = m.id WHERE m.round = ANY($1)',
+      [publishedKoRounds]
+    );
+    if (parseInt(pubCheck.rows[0].count) > 0) {
+      throw new Error('يوجد توقعات على مباريات إقصائية منشورة. قم بإلغاء نشر الجولات أولاً.');
+    }
+  }
+
+  // التحقق: لا توجد نتائج لمباريات إقصائية بدأت بالفعل
+  const startedCheck = await pool.query(
+    "SELECT COUNT(*) FROM matches WHERE round >= 4 AND actual_scoreA IS NOT NULL AND start_at < NOW()"
+  );
+  if (parseInt(startedCheck.rows[0].count) > 0) {
+    throw new Error('هناك مباريات إقصائية بدأت ولها نتائج. لا يمكن إعادة البناء.');
+  }
+
+  // إنشاء backup تلقائي
+  const backupId = 'rebuild_backup_' + Date.now();
+  const backupData = {
+    predictions: (await pool.query('SELECT * FROM predictions')).rows,
+    matches: (await pool.query('SELECT * FROM matches WHERE round >= 4')).rows,
+    settings: (await pool.query("SELECT * FROM settings WHERE key IN ('round32_confirmed','round32_seeding','bracket_paths_initialized')")).rows,
+  };
+  await pool.query(
+    "INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2",
+    [backupId, JSON.stringify(backupData)]
+  );
+  console.log('Backup saved:', backupId);
+
+  // حذف علامات الاعتماد
   await pool.query("DELETE FROM settings WHERE key = 'round32_confirmed'");
   await pool.query("DELETE FROM settings WHERE key = 'round32_seeding'");
 
-  // إعادة تعيين مباريات الأدوار الإقصائية إلى القيم الافتراضية من generateFixtures
+  // إعادة تعيين مباريات الأدوار الإقصائية — فقط الفرق والمسارات
+  // لا نحذف actual_score أو النتائج أو التوقعات
   const fixtures = generateFixtures();
   const knockoutFixtures = fixtures.filter(f => f.round >= 4);
-  const existingMatches = await pool.query('SELECT id, round, teamA, teamB, start_at FROM matches WHERE round >= 4 ORDER BY id');
+  const existingMatches = await pool.query(
+    'SELECT id, round FROM matches WHERE round >= 4 ORDER BY id'
+  );
   const existing = existingMatches.rows;
 
   for (let i = 0; i < knockoutFixtures.length && i < existing.length; i++) {
     const f = knockoutFixtures[i];
     const m = existing[i];
     await pool.query(
-      'UPDATE matches SET teamA = $1, teamB = $2, match_label = NULL, winner_to_match_id = NULL, winner_to_side = NULL, actual_scoreA = NULL, actual_scoreB = NULL, actual_winner = NULL, penalty_winner = NULL WHERE id = $3',
+      'UPDATE matches SET teamA = $1, teamB = $2, match_label = NULL, winner_to_match_id = NULL, winner_to_side = NULL WHERE id = $3',
       [f.teamA, f.teamB, m.id]
     );
   }
 
-  // حذف وحدة مسار المباراة التالية إذا كانت قد أنشأت مباريات وهمية
-  console.log('Knockout rounds rebuilt successfully');
+  console.log('Knockout rounds rebuilt successfully. Backup key:', backupId);
+}
+
+// فحص مسار الأدوار الإقصائية
+async function verifyKnockoutBracket() {
+  const issues = [];
+  const warnings = [];
+  const allMatches = await pool.query(
+    'SELECT id, round, match_label, teamA, teamB, winner_to_match_id, winner_to_side, actual_scoreA FROM matches WHERE round >= 4 ORDER BY round, id'
+  );
+  const matches = allMatches.rows;
+
+  // تجميع المباريات حسب الدور
+  const byRound = { 4: [], 5: [], 6: [], 7: [], 8: [] };
+  const labelMap = {};
+  for (const m of matches) {
+    if (byRound[m.round]) byRound[m.round].push(m);
+    if (m.match_label) labelMap[m.match_label] = m;
+  }
+
+  // 1. عدد المباريات لكل دور
+  const expectedCount = { 4: 16, 5: 8, 6: 4, 7: 2, 8: 1 };
+  for (const [r, expected] of Object.entries(expectedCount)) {
+    const actual = (byRound[parseInt(r)] || []).length;
+    if (actual !== expected) {
+      issues.push(`الدور ${r}: عدد المباريات ${actual} (المتوقع ${expected})`);
+    }
+  }
+
+  // 2. كل مباراة لها match_label (ما عدا إذا كان التوزيع لم يتم بعد)
+  const koMatches = matches.filter(m => m.match_label);
+  if (koMatches.length > 0) {
+    const labels = new Set();
+    for (const m of koMatches) {
+      // تحقق من عدم تكرار match_label
+      if (labels.has(m.match_label)) {
+        issues.push(`مكرر match_label: ${m.match_label} (مباراة ${m.id})`);
+      }
+      labels.add(m.match_label);
+
+      // تحقق من وجود winner_to_match_id (ما عدا النهائي)
+      if (m.round < 8 && !m.winner_to_match_id) {
+        issues.push(`مباراة ${m.id} (${m.match_label}) لا يوجد winner_to_match_id`);
+      }
+      // تحقق من وجود winner_to_side (ما عدا النهائي)
+      if (m.round < 8 && !m.winner_to_side) {
+        issues.push(`مباراة ${m.id} (${m.match_label}) لا يوجد winner_to_side`);
+      }
+      // تحقق من صحة winner_to_match_id (يشير لمباراة موجودة)
+      if (m.winner_to_match_id) {
+        const targetExists = matches.some(tm => tm.id === m.winner_to_match_id);
+        if (!targetExists) {
+          issues.push(`مباراة ${m.id} (${m.match_label}) winner_to_match_id=${m.winner_to_match_id} غير موجود`);
+        }
+      }
+    }
+
+    // تحقق من المباريات المقرر أن تستقبل فائزين
+    for (const m of koMatches) {
+      if (m.round >= 5 && m.round <= 8) {
+        // هذه المباراة من المفترض أن تستقبل فائزين من الدور السابق
+        const incomingFrom = koMatches.filter(
+          src => src.winner_to_match_id === m.id
+        );
+        if (m.round < 8 && incomingFrom.length !== 2) {
+          warnings.push(`مباراة ${m.id} (${m.match_label}) تستقبل ${incomingFrom.length} فائز (المتوقع 2)`);
+        }
+      }
+    }
+  }
+
+  const counts = {};
+  for (const r of [4, 5, 6, 7, 8]) {
+    const list = byRound[r] || [];
+    counts[r] = {
+      total: list.length,
+      with_label: list.filter(m => m.match_label).length,
+      with_winner_to: list.filter(m => m.winner_to_match_id).length,
+    };
+  }
+
+  return {
+    valid: issues.length === 0,
+    issues,
+    warnings,
+    counts,
+    total_ko_matches: matches.length,
+    bracket_initialized: koMatches.length > 0,
+  };
 }

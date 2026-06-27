@@ -839,15 +839,17 @@ app.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
     var seedingPairings = null;
     var bracketStatus = null;
     var bestThirds = null;
+    var bracketVerification = null;
     try {
       bestThirds = await db.getBestThirds();
       seedingPairings = await db.getRound32Pairings();
       bracketStatus = await db.getKnockoutBracketStatus();
+      bracketVerification = await db.verifyKnockoutBracket();
     } catch (err) {
       console.error('Bracket data error:', err.message || err);
     }
 
-    res.render('dashboard', { user: req.user, matches, leaderboard: leaderboardWithMissed, pendingUsers, allUsers, currentRound, publishedRounds, matchesByRound, visiblePredictions, hiddenPredictions, matchPredictions, groups, teamFlags, activeTab, newsItems, allComments, message: null, config, challengePicks, challengeResults, newsReadStats, seedingPairings, bracketStatus, bestThirds });
+    res.render('dashboard', { user: req.user, matches, leaderboard: leaderboardWithMissed, pendingUsers, allUsers, currentRound, publishedRounds, matchesByRound, visiblePredictions, hiddenPredictions, matchPredictions, groups, teamFlags, activeTab, newsItems, allComments, message: null, config, challengePicks, challengeResults, newsReadStats, seedingPairings, bracketStatus, bestThirds, bracketVerification });
   } catch (err) {
     console.error('Dashboard error:', err);
     res.status(500).render('error', { message: 'حدث خطأ في تحميل لوحة التحكم' });
@@ -1024,8 +1026,18 @@ app.post('/admin/rebuild-knockout', requireAuth, requireAdmin, async (req, res) 
     await db.rebuildKnockoutRounds();
     res.redirect('/dashboard?tab=seeding');
   } catch (err) {
-    console.error('Rebuild knockout error:', err);
+    console.error('Rebuild knockout error:', err.message);
     res.redirect('/dashboard?tab=seeding');
+  }
+});
+
+// فحص مسار الأدوار الإقصائية (JSON)
+app.get('/admin/verify-bracket', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const result = await db.verifyKnockoutBracket();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
