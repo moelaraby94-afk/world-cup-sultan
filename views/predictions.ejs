@@ -162,19 +162,6 @@
                     </div>
                     <% } %>
                   <% } else { %>
-                    <% if (saved) { %>
-                    <div class="pc2-pred-score" style="margin-bottom:6px;">
-                      <span class="pc2-pred-label">توقعك</span>
-                      <div class="pc2-pred-score-row">
-                        <span class="pc2-pred-num"><%= valA %></span>
-                        <span class="pc2-score-dash">-</span>
-                        <span class="pc2-pred-num"><%= valB %></span>
-                      </div>
-                      <% if (item.prediction.penalty_winner) { %>
-                      <span class="pc2-ko-pred-pk">⚽ <%= item.prediction.penalty_winner %></span>
-                      <% } %>
-                    </div>
-                    <% } %>
                     <form method="POST" action="/predictions" class="pc2-form" id="pc2Form<%= m.id %>">
                       <input type="hidden" name="matchId" value="<%= m.id %>">
                       <input type="hidden" name="scoreA" id="pc2A<%= m.id %>" value="<%= valA %>">
@@ -206,10 +193,7 @@
                 <!-- ⚽ KO: ركلات الترجيح -->
                 <% if (m.round >= 4 && !ended && !locked) { %>
                 <div class="pc2-ko-penalty" id="pc2Penalty<%= m.id %>" style="display:none;">
-                  <div class="pc2-ko-pen-header">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-12c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
-                    ركلات الترجيح — من يتأهل؟
-                  </div>
+                  <span class="pc2-ko-pen-label">⚽ من يفوز بالترجيح؟</span>
                   <div class="pc2-ko-pen-opts">
                     <label class="pc2-ko-pen-opt <%= saved && item.prediction && item.prediction.penalty_winner === m.teamA ? 'pc2-ko-pen-selected' : '' %>">
                       <input type="radio" name="penaltyWinner" value="<%= m.teamA %>"
@@ -218,7 +202,6 @@
                         onchange="document.querySelectorAll('#pc2Card<%= m.id %> .pc2-ko-pen-opt').forEach(function(l){l.classList.remove('pc2-ko-pen-selected')});this.closest('.pc2-ko-pen-opt').classList.add('pc2-ko-pen-selected')">
                       <img src="/flags/<%= teamFlags[m.teamA]||'unknown' %>.png" class="pc2-ko-pen-flag" onerror="this.src='/flags/unknown.png'">
                       <span class="pc2-ko-pen-name"><%= m.teamA %></span>
-                      <span class="pc2-ko-pen-tick">✓</span>
                     </label>
                     <label class="pc2-ko-pen-opt <%= saved && item.prediction && item.prediction.penalty_winner === m.teamB ? 'pc2-ko-pen-selected' : '' %>">
                       <input type="radio" name="penaltyWinner" value="<%= m.teamB %>"
@@ -227,7 +210,6 @@
                         onchange="document.querySelectorAll('#pc2Card<%= m.id %> .pc2-ko-pen-opt').forEach(function(l){l.classList.remove('pc2-ko-pen-selected')});this.closest('.pc2-ko-pen-opt').classList.add('pc2-ko-pen-selected')">
                       <img src="/flags/<%= teamFlags[m.teamB]||'unknown' %>.png" class="pc2-ko-pen-flag" onerror="this.src='/flags/unknown.png'">
                       <span class="pc2-ko-pen-name"><%= m.teamB %></span>
-                      <span class="pc2-ko-pen-tick">✓</span>
                     </label>
                   </div>
                 </div>

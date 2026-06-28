@@ -5990,68 +5990,49 @@ ol.rule-list li::before {
   }
   .pc2-ko-badge svg { color: #f59e0b; }
 
-  /* KO Penalty Section */
+  /* KO Penalty Section - compact inline */
   .pc2-ko-penalty {
-    margin: 0 12px 10px;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1.5px solid #c4b5fd;
-    background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 12px 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd6fe;
+    background: #faf5ff;
   }
-  .pc2-ko-pen-header {
-    display: flex; align-items: center; justify-content: center; gap: 5px;
-    padding: 7px 10px 5px;
-    font-size: 10px; font-weight: 800; color: #6d28d9;
-    border-bottom: 1px solid #ede9fe;
+  .pc2-ko-pen-label {
+    font-size: 11px; font-weight: 800; color: #6d28d9;
+    white-space: nowrap; flex-shrink: 0;
   }
-  .pc2-ko-pen-header svg { color: #7c3aed; flex-shrink: 0; width: 13px; height: 13px; }
   .pc2-ko-pen-opts {
-    display: flex; padding: 8px 10px 10px; gap: 8px;
+    display: flex; gap: 6px; flex: 1; min-width: 0;
   }
   .pc2-ko-pen-opt {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; gap: 5px;
-    padding: 8px 6px 6px;
-    border-radius: 10px; border: 2px solid #ddd6fe;
-    background: #fff; cursor: pointer;
-    transition: all 0.18s;
-    position: relative; overflow: hidden;
+    flex: 1; display: flex; align-items: center; gap: 5px;
+    padding: 5px 8px; border-radius: 8px;
+    border: 1.5px solid #ddd6fe; background: #fff;
+    cursor: pointer; transition: all 0.15s;
     min-width: 0;
   }
   .pc2-ko-pen-opt:active { opacity: 0.82; }
   .pc2-ko-pen-selected {
     border-color: #7c3aed;
-    background: linear-gradient(135deg, rgba(124,58,237,0.06), rgba(109,40,217,0.03));
-    box-shadow: 0 0 0 3px rgba(124,58,237,0.10);
+    background: rgba(124,58,237,0.06);
   }
   .pc2-ko-pen-flag {
-    width: 30px; height: 30px; border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #e8e0ff;
+    width: 22px; height: 22px; border-radius: 50%;
+    object-fit: cover; border: 1.5px solid #e8e0ff;
     flex-shrink: 0;
   }
   .pc2-ko-pen-selected .pc2-ko-pen-flag {
     border-color: #7c3aed;
-    transform: scale(1.06);
   }
   .pc2-ko-pen-name {
-    font-size: 10px; font-weight: 800;
-    color: #1e293b; text-align: center;
-    line-height: 1.2;
-    max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 11px; font-weight: 800;
+    color: #1e293b;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .pc2-ko-pen-selected .pc2-ko-pen-name { color: #6d28d9; }
-  .pc2-ko-pen-tick {
-    display: none;
-    width: 16px; height: 16px; border-radius: 50%;
-    background: #7c3aed; color: #fff;
-    font-size: 9px; font-weight: 900;
-    align-items: center; justify-content: center;
-    line-height: 1; flex-shrink: 0;
-  }
-  .pc2-ko-pen-selected .pc2-ko-pen-tick {
-    display: flex;
-  }
 
   /* KO: PK saved display */
   .pc2-ko-pred-pk {
@@ -6072,11 +6053,11 @@ ol.rule-list li::before {
     .pc2-ko .pc2-flag { width: 38px; height: 38px; }
     .pc2-ko .pc2-step-num { font-size: 22px; min-width: 28px; }
     .pc2-ko .pc2-step-up, .pc2-ko .pc2-step-dn { width: 32px; height: 28px; font-size: 11px; }
-    .pc2-ko-penalty { margin: 0 10px 8px; }
-    .pc2-ko-pen-opts { gap: 6px; padding: 6px 8px 8px; }
-    .pc2-ko-pen-opt { padding: 6px 4px 4px; }
-    .pc2-ko-pen-flag { width: 26px; height: 26px; }
-    .pc2-ko-pen-name { font-size: 9px; max-width: 55px; }
+    .pc2-ko-penalty { margin: 0 10px 8px; padding: 6px 8px; gap: 4px; }
+    .pc2-ko-pen-label { font-size: 10px; }
+    .pc2-ko-pen-opt { padding: 4px 6px; gap: 4px; }
+    .pc2-ko-pen-flag { width: 20px; height: 20px; }
+    .pc2-ko-pen-name { font-size: 10px; }
   }
 
   /* Show more */
