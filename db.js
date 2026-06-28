@@ -764,7 +764,7 @@ async function savePrediction(userId, matchId, scoreA, scoreB, predictedWinner, 
     INSERT INTO predictions (user_id, match_id, scoreA, scoreB, predicted_winner, penalty_winner, updated_at)
     VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
     ON CONFLICT (user_id, match_id)
-    DO UPDATE SET scoreA = $3, scoreB = $4, predicted_winner = COALESCE($5, predictions.predicted_winner), penalty_winner = COALESCE($6, predictions.penalty_winner), updated_at = CURRENT_TIMESTAMP
+    DO UPDATE SET scoreA = $3, scoreB = $4, predicted_winner = COALESCE($5, predictions.predicted_winner), penalty_winner = $6, updated_at = CURRENT_TIMESTAMP
     RETURNING *
   `, [userId, matchId, scoreA, scoreB, predictedWinner || null, penaltyWinner || null]);
   return result.rows[0];
@@ -818,7 +818,7 @@ async function updateMatchResult(matchId, scoreA, scoreB, actualWinner, penaltyW
     invalidateMatchesCache();
   } else {
     await pool.query(
-      'UPDATE matches SET actual_scoreA = $1, actual_scoreB = $2, actual_winner = COALESCE($3, actual_winner), penalty_winner = COALESCE($4, penalty_winner) WHERE id = $5',
+      'UPDATE matches SET actual_scoreA = $1, actual_scoreB = $2, actual_winner = COALESCE($3, actual_winner), penalty_winner = $4 WHERE id = $5',
       [scoreA, scoreB, actualWinner || null, penaltyWinner || null, matchId]
     );
     invalidateMatchesCache();
