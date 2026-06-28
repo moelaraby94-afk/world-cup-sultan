@@ -195,7 +195,7 @@
                 <div class="pc2-ko-penalty" id="pc2Penalty<%= m.id %>" style="display:none;">
                   <span class="pc2-ko-pen-label">⚽ من يفوز بالترجيح؟</span>
                   <div class="pc2-ko-pen-opts">
-                    <label class="pc2-ko-pen-opt <%= saved && item.prediction && item.prediction.penalty_winner === m.teamA ? 'pc2-ko-pen-selected' : '' %>" onclick="event.preventDefault();">
+                    <label class="pc2-ko-pen-opt <%= saved && item.prediction && item.prediction.penalty_winner === m.teamA ? 'pc2-ko-pen-selected' : '' %>">
                       <input type="radio" name="penaltyWinner" value="<%= m.teamA %>"
                         id="ppen<%= m.id %>A" form="pc2Form<%= m.id %>" style="display:none"
                         <%= saved && item.prediction && item.prediction.penalty_winner === m.teamA ? 'checked' : '' %>
@@ -203,7 +203,7 @@
                       <img src="/flags/<%= teamFlags[m.teamA]||'unknown' %>.png" class="pc2-ko-pen-flag" onerror="this.src='/flags/unknown.png'">
                       <span class="pc2-ko-pen-name"><%= m.teamA %></span>
                     </label>
-                    <label class="pc2-ko-pen-opt <%= saved && item.prediction && item.prediction.penalty_winner === m.teamB ? 'pc2-ko-pen-selected' : '' %>" onclick="event.preventDefault();">
+                    <label class="pc2-ko-pen-opt <%= saved && item.prediction && item.prediction.penalty_winner === m.teamB ? 'pc2-ko-pen-selected' : '' %>">
                       <input type="radio" name="penaltyWinner" value="<%= m.teamB %>"
                         id="ppen<%= m.id %>B" form="pc2Form<%= m.id %>" style="display:none"
                         <%= saved && item.prediction && item.prediction.penalty_winner === m.teamB ? 'checked' : '' %>
