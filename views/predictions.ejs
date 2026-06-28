@@ -408,6 +408,12 @@
           </div>
         </div>
 
+        <%
+          var prByRound = {};
+          matches.forEach(function(itm){ var r=itm.match.round||1; if(!prByRound[r]) prByRound[r]=[]; prByRound[r].push(itm); });
+          var prRounds = Object.keys(prByRound).sort(function(a,b){return a-b});
+        %>
+
         <div class="pr-filters" id="pr-filters">
           <button class="pr-filter-pill active" onclick="prFilterRound('all',this)">الكل</button>
           <% prRounds.forEach(function(r){ %>
@@ -422,12 +428,6 @@
           <button class="pr-filter-pill sc-date-pill" data-pr-date="today" onclick="prDateFilter('today',this)">اليوم</button>
           <button class="pr-filter-pill sc-date-pill" data-pr-date="tomorrow" onclick="prDateFilter('tomorrow',this)">غداً</button>
         </div>
-
-        <%
-          var prByRound = {};
-          matches.forEach(function(itm){ var r=itm.match.round||1; if(!prByRound[r]) prByRound[r]=[]; prByRound[r].push(itm); });
-          var prRounds = Object.keys(prByRound).sort(function(a,b){return a-b});
-        %>
 
         <div class="pr-matches-container" id="pr-matches-container">
           <% prRounds.forEach(function(round){ %>
