@@ -321,8 +321,10 @@ app.get('/my-predictions', requireAuth, async (req, res) => {
     const leaderboard = await db.getLeaderboard();
     const top3 = leaderboard.slice(0, 3);
     const userRank = leaderboard.findIndex(u => u.id === req.user.id) + 1;
-    const totalPoints = predictions.reduce((sum, p) => sum + p.points, 0);
-    res.render('my-predictions', { user: req.user, predictions, top3, userRank, totalPoints });
+    const userEntry = leaderboard.find(u => u.id === req.user.id);
+    const predPoints = predictions.reduce((sum, p) => sum + p.points, 0);
+    const totalPoints = predPoints + (userEntry?.manual_points || 0) + (userEntry?.challenge_points || 0);
+    res.render('my-predictions', { user: req.user, predictions, top3, userRank, totalPoints, predPoints, manualPoints: userEntry?.manual_points || 0, challengePoints: userEntry?.challenge_points || 0 });
   } catch (err) {
     console.error('My predictions error:', err);
     res.status(500).render('error', { message: 'حدث خطأ في تحميل الصفحة' });
