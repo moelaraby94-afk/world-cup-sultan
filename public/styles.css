@@ -6003,24 +6003,26 @@ ol.rule-list li::before {
   .pc2-ko-pen-label {
     font-size: 11px; font-weight: 800; color: #6d28d9;
     white-space: nowrap; flex-shrink: 0;
+    width: 100%; text-align: center; margin-bottom: 2px;
   }
   .pc2-ko-pen-opts {
-    display: flex; gap: 6px; flex: 1; min-width: 0;
+    display: flex; gap: 6px; flex: 1; min-width: 0; width: 100%;
   }
   .pc2-ko-pen-opt {
-    flex: 1; display: flex; align-items: center; gap: 5px;
-    padding: 5px 8px; border-radius: 8px;
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 6px 8px; border-radius: 8px;
     border: 1.5px solid #ddd6fe; background: #fff;
     cursor: pointer; transition: all 0.15s;
-    min-width: 0;
+    min-width: 0; -webkit-tap-highlight-color: transparent;
   }
   .pc2-ko-pen-opt:active { opacity: 0.82; }
   .pc2-ko-pen-selected {
     border-color: #7c3aed;
-    background: rgba(124,58,237,0.06);
+    background: rgba(124,58,237,0.08);
+    box-shadow: 0 0 0 2px rgba(124,58,237,0.10);
   }
   .pc2-ko-pen-flag {
-    width: 22px; height: 22px; border-radius: 50%;
+    width: 24px; height: 24px; border-radius: 50%;
     object-fit: cover; border: 1.5px solid #e8e0ff;
     flex-shrink: 0;
   }
