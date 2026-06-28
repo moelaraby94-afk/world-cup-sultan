@@ -423,50 +423,69 @@
               <div class="pr-round-header"><span class="pr-round-badge">الجولة <%= round %></span><span class="pr-round-count"><%= prByRound[round].length %> مباراة</span></div>
               <div class="pr-matches-list">
                 <% prByRound[round].forEach(function(itm){ var lck=itm.locked; var hasP=itm.prediction!=null; var ended=itm.match.actual_scoreA!=null; var prDateKey=new Date(itm.match.start_at).toLocaleDateString('en-CA',{timeZone:'Asia/Riyadh'}); %>
-                <div class="pr-match-row <%= lck ? 'pr-match-locked' : '' %>" data-round="<%= round %>" data-pr-date="<%= prDateKey %>">
-                  <span class="pr-group-badge"><%= itm.match.stage %></span>
-                  <div class="pr-team pr-team-a"><span class="pr-team-name"><%= itm.match.teamA %></span><div class="pr-flag-wrap"><img src="/flags/<%= teamFlags[itm.match.teamA]||'unknown' %>.png" class="pr-flag" onerror="this.src='/flags/unknown.png'" /></div></div>
-                  <div class="pr-match-meta"><span class="pr-match-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><%= new Date(itm.match.start_at).toLocaleTimeString('ar-EG', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Riyadh' }) %></span><span class="pr-match-group"><%= itm.match.stage %></span></div>
-                  <div class="pr-vs-badge"><% if (itm.match.actual_scoreA!=null) { %><span class="pr-final-score"><%= itm.match.actual_scoreA %>-<%= itm.match.actual_scoreB %></span><% } else { %>VS<% } %></div>
-                  <div class="pr-team pr-team-b"><div class="pr-flag-wrap"><img src="/flags/<%= teamFlags[itm.match.teamB]||'unknown' %>.png" class="pr-flag" onerror="this.src='/flags/unknown.png'" /></div><span class="pr-team-name"><%= itm.match.teamB %></span></div>
-                  <div class="pr-action-col">
-                    <% if (hasP) { %>
-                    <div class="pr-pred-display">
-                      <span class="pr-pred-label">توقعك:</span>
-                      <span class="pr-pred-score"><%= itm.prediction.scoreA %>-<%= itm.prediction.scoreB %></span>
-                        <% if (itm.prediction.penalty_winner) { %>
-                      <span class="pr-pred-pk">⚽ <%= itm.prediction.penalty_winner %></span>
+                <div class="pr-match-row <%= lck ? 'pr-match-locked' : '' %> <%= itm.match.round >= 4 ? 'pr-match-ko' : '' %>" data-round="<%= round %>" data-pr-date="<%= prDateKey %>">
+                  <div class="pr-row-top">
+                    <span class="pr-group-badge"><%= itm.match.stage %></span>
+                    <span class="pr-row-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><%= new Date(itm.match.start_at).toLocaleTimeString('ar-EG', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Riyadh' }) %></span>
+                    <% if (ended) { %><span class="pr-row-result">انتهت <%= itm.match.actual_scoreA %>-<%= itm.match.actual_scoreB %></span><% } %>
+                  </div>
+                  <div class="pr-row-body">
+                    <div class="pr-row-team pr-row-team-a">
+                      <div class="pr-flag-wrap"><img src="/flags/<%= teamFlags[itm.match.teamA]||'unknown' %>.png" class="pr-flag" onerror="this.src='/flags/unknown.png'" /></div>
+                      <span class="pr-team-name"><%= itm.match.teamA %></span>
+                    </div>
+                    <div class="pr-row-center">
+                      <% if (ended) { %>
+                        <% if (hasP) { %>
+                        <div class="pr-pred-display">
+                          <span class="pr-pred-label">توقعك</span>
+                          <span class="pr-pred-score"><%= itm.prediction.scoreA %>-<%= itm.prediction.scoreB %></span>
+                          <% if (itm.prediction.penalty_winner) { %>
+                          <span class="pr-pred-pk">⚽ <%= itm.prediction.penalty_winner %></span>
+                          <% } %>
+                        </div>
+                        <% } else { %>
+                        <div class="pr-pred-display pr-pred-missed"><span class="pr-pred-label">لم تسجل توقعك</span></div>
+                        <% } %>
+                      <% } else { %>
+                      <form method="POST" action="/predictions" class="pr-pred-form" id="prForm<%= itm.match.id %>">
+                        <input type="hidden" name="matchId" value="<%= itm.match.id %>">
+                        <div class="pr-score-inputs">
+                          <input type="number" name="scoreA" value="<%= hasP ? itm.prediction.scoreA : '' %>" min="0" placeholder="0" required class="pr-score-input" <%= (lck||ended) ? 'disabled' : '' %> oninput="prTogglePenalty(this)">
+                          <span class="pr-score-sep">-</span>
+                          <input type="number" name="scoreB" value="<%= hasP ? itm.prediction.scoreB : '' %>" min="0" placeholder="0" required class="pr-score-input" <%= (lck||ended) ? 'disabled' : '' %> oninput="prTogglePenalty(this)">
+                        </div>
+                        <% if (itm.match.round >= 4) { %>
+                        <div class="pr-penalty-pick" id="prPenalty<%= itm.match.id %>" style="display:none;">
+                          <span class="pr-penalty-label">⚽ ركلات الترجيح</span>
+                          <div class="pr-penalty-opts">
+                            <label class="pr-penalty-opt <%= hasP && itm.prediction.penalty_winner === itm.match.teamA ? 'pr-penalty-selected' : '' %>" onclick="event.stopPropagation();this.querySelector('input').click()">
+                              <input type="radio" name="penaltyWinner" value="<%= itm.match.teamA %>" style="display:none" <%= hasP && itm.prediction.penalty_winner === itm.match.teamA ? 'checked' : '' %> <%= (lck||ended) ? 'disabled' : '' %> onchange="var p=this.closest('.pr-penalty-pick');p.querySelectorAll('.pr-penalty-opt').forEach(function(l){l.classList.remove('pr-penalty-selected')});this.closest('.pr-penalty-opt').classList.add('pr-penalty-selected')">
+                              <img src="/flags/<%= teamFlags[itm.match.teamA]||'unknown' %>.png" class="pr-penalty-flag" onerror="this.src='/flags/unknown.png'">
+                              <span class="pr-penalty-name"><%= itm.match.teamA %></span>
+                              <span class="pr-penalty-tick">✓</span>
+                            </label>
+                            <label class="pr-penalty-opt <%= hasP && itm.prediction.penalty_winner === itm.match.teamB ? 'pr-penalty-selected' : '' %>" onclick="event.stopPropagation();this.querySelector('input').click()">
+                              <input type="radio" name="penaltyWinner" value="<%= itm.match.teamB %>" style="display:none" <%= hasP && itm.prediction.penalty_winner === itm.match.teamB ? 'checked' : '' %> <%= (lck||ended) ? 'disabled' : '' %> onchange="var p=this.closest('.pr-penalty-pick');p.querySelectorAll('.pr-penalty-opt').forEach(function(l){l.classList.remove('pr-penalty-selected')});this.closest('.pr-penalty-opt').classList.add('pr-penalty-selected')">
+                              <img src="/flags/<%= teamFlags[itm.match.teamB]||'unknown' %>.png" class="pr-penalty-flag" onerror="this.src='/flags/unknown.png'">
+                              <span class="pr-penalty-name"><%= itm.match.teamB %></span>
+                              <span class="pr-penalty-tick">✓</span>
+                            </label>
+                          </div>
+                        </div>
+                        <% } %>
+                        <div class="pr-form-actions">
+                          <% if (lck) { %><span class="pr-status-btn pr-status-locked">مقفل</span>
+                          <% } else if (hasP) { %><button type="submit" class="pr-save-btn">تعديل</button><span class="pr-status-btn pr-status-predicted">تم التوقع</span>
+                          <% } else { %><button type="submit" class="pr-save-btn">حفظ</button><% } %>
+                        </div>
+                      </form>
                       <% } %>
                     </div>
-                    <% } else if (ended) { %>
-                    <div class="pr-pred-display pr-pred-missed">
-                      <span class="pr-pred-label">لم تسجل توقعك</span>
+                    <div class="pr-row-team pr-row-team-b">
+                      <div class="pr-flag-wrap"><img src="/flags/<%= teamFlags[itm.match.teamB]||'unknown' %>.png" class="pr-flag" onerror="this.src='/flags/unknown.png'" /></div>
+                      <span class="pr-team-name"><%= itm.match.teamB %></span>
                     </div>
-                    <% } %>
-                    <form method="POST" action="/predictions" class="pr-pred-form"><input type="hidden" name="matchId" value="<%= itm.match.id %>"><div class="pr-score-inputs"><input type="number" name="scoreA" value="<%= hasP ? itm.prediction.scoreA : '' %>" min="0" placeholder="0" required class="pr-score-input pr-score-pr" <%= (lck||ended) ? 'disabled' : '' %> oninput="prTogglePenalty(this)"><span class="pr-score-sep">-</span><input type="number" name="scoreB" value="<%= hasP ? itm.prediction.scoreB : '' %>" min="0" placeholder="0" required class="pr-score-input pr-score-pr" <%= (lck||ended) ? 'disabled' : '' %> oninput="prTogglePenalty(this)"></div>
-                    <% if (itm.match.round >= 4) { %>
-                    <div class="pr-penalty-pick" id="prPenalty<%= itm.match.id %>" style="display:none;">
-                      <span class="pr-penalty-label">⚽ ركلات الترجيح</span>
-                      <div class="pr-penalty-opts">
-                        <label class="pr-penalty-opt <%= hasP && itm.prediction.penalty_winner === itm.match.teamA ? 'pr-penalty-selected' : '' %>" onclick="event.stopPropagation();this.querySelector('input').click()">
-                          <input type="radio" name="penaltyWinner" value="<%= itm.match.teamA %>" style="display:none" <%= hasP && itm.prediction.penalty_winner === itm.match.teamA ? 'checked' : '' %> <%= (lck||ended) ? 'disabled' : '' %> onchange="var p=this.closest('.pr-penalty-pick');p.querySelectorAll('.pr-penalty-opt').forEach(function(l){l.classList.remove('pr-penalty-selected')});this.closest('.pr-penalty-opt').classList.add('pr-penalty-selected')">
-                          <img src="/flags/<%= teamFlags[itm.match.teamA]||'unknown' %>.png" class="pr-penalty-flag" onerror="this.src='/flags/unknown.png'">
-                          <span class="pr-penalty-name"><%= itm.match.teamA %></span>
-                          <span class="pr-penalty-tick">✓</span>
-                        </label>
-                        <label class="pr-penalty-opt <%= hasP && itm.prediction.penalty_winner === itm.match.teamB ? 'pr-penalty-selected' : '' %>" onclick="event.stopPropagation();this.querySelector('input').click()">
-                          <input type="radio" name="penaltyWinner" value="<%= itm.match.teamB %>" style="display:none" <%= hasP && itm.prediction.penalty_winner === itm.match.teamB ? 'checked' : '' %> <%= (lck||ended) ? 'disabled' : '' %> onchange="var p=this.closest('.pr-penalty-pick');p.querySelectorAll('.pr-penalty-opt').forEach(function(l){l.classList.remove('pr-penalty-selected')});this.closest('.pr-penalty-opt').classList.add('pr-penalty-selected')">
-                          <img src="/flags/<%= teamFlags[itm.match.teamB]||'unknown' %>.png" class="pr-penalty-flag" onerror="this.src='/flags/unknown.png'">
-                          <span class="pr-penalty-name"><%= itm.match.teamB %></span>
-                          <span class="pr-penalty-tick">✓</span>
-                        </label>
-                      </div>
-                    </div>
-                    <% } %>
-                    <% if (lck||ended) { %><span class="pr-status-btn pr-status-locked">مقفل</span>
-                    <% } else if (hasP) { %><button type="submit" class="pr-save-btn">تعديل</button><span class="pr-status-btn pr-status-predicted">تم التوقع</span>
-                    <% } else { %><button type="submit" class="pr-save-btn">حفظ</button><span class="pr-status-btn pr-status-open">متاح</span><% } %>
-                    </form>
                   </div>
                 </div>
                 <% }); %>
