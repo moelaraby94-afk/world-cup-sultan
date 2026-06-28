@@ -122,7 +122,7 @@
                 var valB = saved ? item.prediction.scoreB : 0;
                 var pc2Date = new Date(m.start_at).toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
               %>
-              <div class="pc2-card <%= locked && !ended ? 'pc2-card-locked' : '' %> <%= ended ? 'pc2-card-ended' : '' %> <%= saved && !ended ? 'pc2-card-saved' : '' %>" id="pc2Card<%= m.id %>" data-pc2-date="<%= pc2Date %>">
+              <div class="pc2-card <%= locked && !ended ? 'pc2-card-locked' : '' %> <%= ended ? 'pc2-card-ended' : '' %> <%= saved && !ended ? 'pc2-card-saved' : '' %> <%= m.round >= 4 ? 'pc2-ko' : '' %>" id="pc2Card<%= m.id %>" data-pc2-date="<%= pc2Date %>">
 
                 <!-- Card Top: stage + date + time -->
                 <div class="pc2-card-top">
@@ -150,11 +150,8 @@
                       <span class="pc2-pred-num"><%= valA %></span>
                       <span class="pc2-score-dash">-</span>
                       <span class="pc2-pred-num"><%= valB %></span>
-                      <% if (m.round >= 4 && saved && item.prediction.predicted_winner) { %>
-                      <span style="font-size:0.7rem;font-weight:700;color:#16a34a;display:block;margin-top:2px;">المتأهل: <%= item.prediction.predicted_winner %></span>
-                      <% } %>
                       <% if (saved && item.prediction.penalty_winner) { %>
-                      <span style="font-size:0.65rem;font-weight:700;color:#a855f7;display:block;margin-top:2px;">PK: <%= item.prediction.penalty_winner %></span>
+                      <span class="pc2-ko-pred-pk">⚽ PK: <%= item.prediction.penalty_winner %></span>
                       <% } %>
                     </div>
                     <% } else { %>
@@ -169,11 +166,8 @@
                       <span class="pc2-pred-num"><%= valA %></span>
                       <span class="pc2-score-dash">-</span>
                       <span class="pc2-pred-num"><%= valB %></span>
-                      <% if (m.round >= 4 && item.prediction.predicted_winner) { %>
-                      <span style="font-size:0.7rem;font-weight:700;color:#16a34a;display:block;margin-top:2px;">المتأهل: <%= item.prediction.predicted_winner %></span>
-                      <% } %>
                       <% if (item.prediction.penalty_winner) { %>
-                      <span style="font-size:0.65rem;font-weight:700;color:#a855f7;display:block;margin-top:2px;">PK: <%= item.prediction.penalty_winner %></span>
+                      <span class="pc2-ko-pred-pk">⚽ PK: <%= item.prediction.penalty_winner %></span>
                       <% } %>
                     </div>
                     <% } %>
@@ -196,24 +190,6 @@
                       </div>
                     </form>
 
-                    <!-- Penalty winner picker (يظهر فقط عند توقع التعادل في الأدوار الإقصائية) -->
-                    <% if (m.round >= 4) { %>
-                    <div class="pc2-penalty-pick" id="pc2Penalty<%= m.id %>" style="margin-top:8px;text-align:center;padding:6px 0;border-top:1px solid var(--border);display:none;">
-                      <div style="font-size:0.72rem;font-weight:700;color:var(--text-secondary);margin-bottom:3px;">⚽ الفائز بركلات الترجيح؟</div>
-                      <div style="display:flex;gap:6px;justify-content:center;">
-                        <label class="pc2-penalty-lbl" style="display:flex;align-items:center;gap:3px;padding:3px 10px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:600;transition:all 0.15s;background:var(--bg);" onclick="document.getElementById('ppen<%= m.id %>A').click()">
-                          <input type="radio" name="penaltyWinner" value="<%= m.teamA %>" id="ppen<%= m.id %>A" form="pc2Form<%= m.id %>" style="display:none" <%= saved && item.prediction.penalty_winner === m.teamA ? 'checked' : '' %> onchange="document.querySelectorAll('#pc2Card<%= m.id %> .pc2-penalty-lbl').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--bg)'});this.parentElement.style.borderColor='#a855f7';this.parentElement.style.background='rgba(168,85,247,0.08)'">
-                          <img src="/flags/<%= teamFlags[m.teamA]||'unknown' %>.png" style="width:14px;height:14px;border-radius:2px;" onerror="this.style.display='none'">
-                          <span><%= m.teamA %></span>
-                        </label>
-                        <label class="pc2-penalty-lbl" style="display:flex;align-items:center;gap:3px;padding:3px 10px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:600;transition:all 0.15s;background:var(--bg);" onclick="document.getElementById('ppen<%= m.id %>B').click()">
-                          <input type="radio" name="penaltyWinner" value="<%= m.teamB %>" id="ppen<%= m.id %>B" form="pc2Form<%= m.id %>" style="display:none" <%= saved && item.prediction.penalty_winner === m.teamB ? 'checked' : '' %> onchange="document.querySelectorAll('#pc2Card<%= m.id %> .pc2-penalty-lbl').forEach(function(l){l.style.borderColor='var(--border)';l.style.background='var(--bg)'});this.parentElement.style.borderColor='#a855f7';this.parentElement.style.background='rgba(168,85,247,0.08)'">
-                          <img src="/flags/<%= teamFlags[m.teamB]||'unknown' %>.png" style="width:14px;height:14px;border-radius:2px;" onerror="this.style.display='none'">
-                          <span><%= m.teamB %></span>
-                        </label>
-                      </div>
-                    </div>
-                  <% } %>
                   <% } %>
 
                   <!-- Team B -->
@@ -222,6 +198,36 @@
                     <span class="pc2-team-name"><%= m.teamB %></span>
                   </div>
                 </div>
+
+                <!-- ⚽ KO: ركلات الترجيح -->
+                <% if (m.round >= 4 && !ended && !locked) { %>
+                <div class="pc2-ko-penalty" id="pc2Penalty<%= m.id %>" style="display:none;">
+                  <div class="pc2-ko-pen-header">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-12c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+                    ركلات الترجيح — من يتأهل؟
+                  </div>
+                  <div class="pc2-ko-pen-opts">
+                    <label class="pc2-ko-pen-opt <%= saved && item.prediction && item.prediction.penalty_winner === m.teamA ? 'pc2-ko-pen-selected' : '' %>">
+                      <input type="radio" name="penaltyWinner" value="<%= m.teamA %>"
+                        id="ppen<%= m.id %>A" form="pc2Form<%= m.id %>" style="display:none"
+                        <%= saved && item.prediction && item.prediction.penalty_winner === m.teamA ? 'checked' : '' %>
+                        onchange="document.querySelectorAll('#pc2Card<%= m.id %> .pc2-ko-pen-opt').forEach(function(l){l.classList.remove('pc2-ko-pen-selected')});this.closest('.pc2-ko-pen-opt').classList.add('pc2-ko-pen-selected')">
+                      <img src="/flags/<%= teamFlags[m.teamA]||'unknown' %>.png" class="pc2-ko-pen-flag" onerror="this.src='/flags/unknown.png'">
+                      <span class="pc2-ko-pen-name"><%= m.teamA %></span>
+                      <span class="pc2-ko-pen-tick">✓</span>
+                    </label>
+                    <label class="pc2-ko-pen-opt <%= saved && item.prediction && item.prediction.penalty_winner === m.teamB ? 'pc2-ko-pen-selected' : '' %>">
+                      <input type="radio" name="penaltyWinner" value="<%= m.teamB %>"
+                        id="ppen<%= m.id %>B" form="pc2Form<%= m.id %>" style="display:none"
+                        <%= saved && item.prediction && item.prediction.penalty_winner === m.teamB ? 'checked' : '' %>
+                        onchange="document.querySelectorAll('#pc2Card<%= m.id %> .pc2-ko-pen-opt').forEach(function(l){l.classList.remove('pc2-ko-pen-selected')});this.closest('.pc2-ko-pen-opt').classList.add('pc2-ko-pen-selected')">
+                      <img src="/flags/<%= teamFlags[m.teamB]||'unknown' %>.png" class="pc2-ko-pen-flag" onerror="this.src='/flags/unknown.png'">
+                      <span class="pc2-ko-pen-name"><%= m.teamB %></span>
+                      <span class="pc2-ko-pen-tick">✓</span>
+                    </label>
+                  </div>
+                </div>
+                <% } %>
 
                 <!-- Card Footer -->
                 <div class="pc2-card-foot">
