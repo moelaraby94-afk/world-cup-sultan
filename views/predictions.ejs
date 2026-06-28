@@ -146,12 +146,14 @@
                   <% if (ended) { %>
                     <% if (saved) { %>
                     <div class="pc2-pred-score">
-                      <span class="pc2-pred-label">توقعك:</span>
-                      <span class="pc2-pred-num"><%= valA %></span>
-                      <span class="pc2-score-dash">-</span>
-                      <span class="pc2-pred-num"><%= valB %></span>
+                      <span class="pc2-pred-label">توقعك</span>
+                      <div class="pc2-pred-score-row">
+                        <span class="pc2-pred-num"><%= valA %></span>
+                        <span class="pc2-score-dash">-</span>
+                        <span class="pc2-pred-num"><%= valB %></span>
+                      </div>
                       <% if (saved && item.prediction.penalty_winner) { %>
-                      <span class="pc2-ko-pred-pk">⚽ PK: <%= item.prediction.penalty_winner %></span>
+                      <span class="pc2-ko-pred-pk">⚽ <%= item.prediction.penalty_winner %></span>
                       <% } %>
                     </div>
                     <% } else { %>
@@ -162,12 +164,14 @@
                   <% } else { %>
                     <% if (saved) { %>
                     <div class="pc2-pred-score" style="margin-bottom:6px;">
-                      <span class="pc2-pred-label">توقعك:</span>
-                      <span class="pc2-pred-num"><%= valA %></span>
-                      <span class="pc2-score-dash">-</span>
-                      <span class="pc2-pred-num"><%= valB %></span>
+                      <span class="pc2-pred-label">توقعك</span>
+                      <div class="pc2-pred-score-row">
+                        <span class="pc2-pred-num"><%= valA %></span>
+                        <span class="pc2-score-dash">-</span>
+                        <span class="pc2-pred-num"><%= valB %></span>
+                      </div>
                       <% if (item.prediction.penalty_winner) { %>
-                      <span class="pc2-ko-pred-pk">⚽ PK: <%= item.prediction.penalty_winner %></span>
+                      <span class="pc2-ko-pred-pk">⚽ <%= item.prediction.penalty_winner %></span>
                       <% } %>
                     </div>
                     <% } %>
