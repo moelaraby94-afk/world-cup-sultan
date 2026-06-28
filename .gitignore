@@ -1,3 +1,49 @@
+# Dependencies
 node_modules/
+
+# Environment
 .env
+.env.local
+.env.*.local
+
+# Data files
 data.json
+
+# Backups & SQL dumps
+backups/
+*.bak
+backup_*.sql
+# Ignore .sql files in root only, keep migrations
+/*.sql
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+
+# Uploads (keep directory structure, ignore content)
+public/uploads/news/*
+!public/uploads/news/.gitkeep
+
+# Backup scripts (local paths)
+backup.bat
+backup.ps1
+
+# Large images (not needed in repo)
+ChatGPT Image 4 يونيو 2026، 05_00_54 م.png

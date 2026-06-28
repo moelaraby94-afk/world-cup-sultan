@@ -230,6 +230,7 @@
                       </div>
                     </div>
                     <% } %>
+                    </div>
                   <% } %>
 
                   <!-- Team B -->
@@ -408,9 +409,9 @@
 
         <div class="pr-filters" id="pr-filters">
           <button class="pr-filter-pill active" onclick="prFilterRound('all',this)">الكل</button>
-          <button class="pr-filter-pill" onclick="prFilterRound(1,this)">الجولة 1</button>
-          <button class="pr-filter-pill" onclick="prFilterRound(2,this)">الجولة 2</button>
-          <button class="pr-filter-pill" onclick="prFilterRound(3,this)">الجولة 3</button>
+          <% prRounds.forEach(function(r){ %>
+          <button class="pr-filter-pill" onclick="prFilterRound(<%= r %>,this)">الجولة <%= r %></button>
+          <% }); %>
         </div>
 
         <!-- Date Filters (desktop) -->

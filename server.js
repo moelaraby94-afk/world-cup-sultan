@@ -38,7 +38,19 @@ app.set('trust proxy', 1);
 
 // ===== Security & Performance =====
 app.use(helmet({
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      fontSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
   crossOriginEmbedderPolicy: false,
 }));
 app.use(compression());
@@ -50,15 +62,6 @@ const generalLimiter = rateLimit({
   message: 'طلبات كثيرة جداً، حاول بعد 15 دقيقة',
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    // Use X-Forwarded-For header when behind proxy (Render, etc.)
-    const forwarded = req.headers['x-forwarded-for'];
-    if (forwarded) {
-      const ips = forwarded.split(',').map(ip => ip.trim());
-      return ips[0] || req.ip;
-    }
-    return req.ip;
-  }
 });
 app.use(generalLimiter);
 
@@ -69,14 +72,6 @@ const authLimiter = rateLimit({
   message: 'طلبات كثيرة جداً، حاول بعد 15 دقيقة',
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    const forwarded = req.headers['x-forwarded-for'];
-    if (forwarded) {
-      const ips = forwarded.split(',').map(ip => ip.trim());
-      return ips[0] || req.ip;
-    }
-    return req.ip;
-  }
 });
 
 // Rate limiting للإدارة — 50 طلب لكل 15 دقيقة
@@ -86,20 +81,12 @@ const adminLimiter = rateLimit({
   message: 'طلبات كثيرة جداً، حاول بعد 15 دقيقة',
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
-    const forwarded = req.headers['x-forwarded-for'];
-    if (forwarded) {
-      const ips = forwarded.split(',').map(ip => ip.trim());
-      return ips[0] || req.ip;
-    }
-    return req.ip;
-  }
 });
 
 // ===== View Engine =====
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: '50kb' }));
 app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: '1d',
   etag: true
@@ -107,7 +94,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
 
 // ===== Session =====
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback-secret-do-not-use-in-production',
+  secret: process.env.SESSION_SECRET || (process.env.NODE_ENV === 'production' ? null : 'dev-only-not-for-production'),
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -117,6 +104,10 @@ app.use(session({
     sameSite: 'lax'
   }
 }));
+if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
+  console.error('FATAL: SESSION_SECRET env var is required in production. Exiting.');
+  process.exit(1);
+}
 
 // ===== Local Variables =====
 const teamFlags = db.getTeamFlags();
@@ -175,6 +166,16 @@ function isPredictionLocked(matchStart) {
 
 // ===== Routes =====
 
+// Health check
+app.get('/health', async (req, res) => {
+  try {
+    await db.pool.query('SELECT 1');
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  } catch (err) {
+    res.status(503).json({ status: 'error', message: 'Database unavailable' });
+  }
+});
+
 // Favicon
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
@@ -206,8 +207,10 @@ app.post('/login', authLimiter, async (req, res) => {
     if (user.status === 'rejected') {
       return res.render('login', { message: 'تم رفض حسابك من الإدارة' });
     }
-    req.session.userId = user.id;
-    res.redirect('/home');
+    req.session.regenerate(() => {
+      req.session.userId = user.id;
+      res.redirect('/home');
+    });
   } catch (err) {
     console.error('Login error:', err);
     res.render('login', { message: 'حدث خطأ، حاول مرة أخرى' });
@@ -237,8 +240,10 @@ app.post('/register', authLimiter, async (req, res) => {
       return res.render('register', { message: 'اسم المستخدم يحتوي على رموز غير مسموح بها' });
     }
     const user = await db.createUser(name.trim(), username.trim(), password);
-    req.session.userId = user.id;
-    res.redirect('/pending');
+    req.session.regenerate(() => {
+      req.session.userId = user.id;
+      res.redirect('/pending');
+    });
   } catch (error) {
     return res.render('register', { message: 'اسم المستخدم مستخدم بالفعل، حاول آخر' });
   }
@@ -259,21 +264,23 @@ app.get('/home', requireAuth, async (req, res) => {
     if (req.user.status !== 'approved') return res.redirect('/pending');
     const allMatches = await db.getMatches();
     const matches = allMatches;
-    const predictionsWithLock = await Promise.all(matches.map(async match => {
-      const pred = await db.getPrediction(req.user.id, match.id);
-      return { match, prediction: pred, locked: isPredictionLocked(match.start_at) };
+    const publishedRounds = await db.getPublishedRounds();
+    const leaderboard = await db.getLeaderboard();
+    const userPredictions = await db.getUserPredictions(req.user.id);
+    const userPredMap = new Map(userPredictions.map(p => [p.match_id, p]));
+    const predictionsWithLock = matches.map(match => ({
+      match,
+      prediction: userPredMap.get(match.id) || null,
+      locked: isPredictionLocked(match.start_at)
     }));
     const upcomingMatches = matches
       .filter(match => new Date(match.start_at) > Date.now())
       .slice(0, 5)
       .map(match => ({ ...match, locked: isPredictionLocked(match.start_at) }));
-    const publishedRounds = await db.getPublishedRounds();
-    const leaderboard = await db.getLeaderboard();
-    const userPredictions = await db.getUserPredictions(req.user.id);
     const predictionsCount = userPredictions.length;
     const correctPredictions = userPredictions.filter(p =>
       p.actual_scoreA != null && p.actual_scoreB != null &&
-      p.scoreA === p.actual_scoreA && p.scoreB === p.actual_scoreB
+      db.calculatePoints(p.scoreA, p.scoreB, p.actual_scoreA, p.actual_scoreB, p.round, p.penalty_winner, p.actual_penalty_winner) >= 20
     ).length;
     const lockedMatchesForUser = matches.filter(m =>
       publishedRounds.includes(m.round) && isPredictionLocked(m.start_at) && m.id >= db.MISSED_PREDICTIONS_START_MATCH_ID
@@ -292,7 +299,7 @@ app.get('/home', requireAuth, async (req, res) => {
     const lastMatch = allMatches.filter(m => new Date(m.start_at) > Date.now()).slice(0, 1)[0];
     const fifthEntry = leaderboard[4];
     const gapToFifth = fifthEntry && userEntry ? Math.max(0, fifthEntry.total - userEntry.total) : 0;
-    const teamFlags = await db.getTeamFlags();
+    const teamFlags = db.getTeamFlags();
     const newsItems = await db.getNews();
     const lastPrediction = await db.getLastPrediction(req.user.id);
     res.render('home', { user: req.user, matches: predictionsWithLock, upcomingMatches, leaderboard, predictionsCount, correctPredictions, lockedWithoutPrediction, commitmentRate, userRank, userPoints, userEntry, top3, allMatchesCount, lastMatch, lastPrediction, gapToFifth, teamFlags, newsItems });
@@ -308,7 +315,7 @@ app.get('/my-predictions', requireAuth, async (req, res) => {
     if (req.user.status !== 'approved') return res.redirect('/pending');
     const predictions = (await db.getUserPredictions(req.user.id)).map(item => ({
       ...item,
-      points: db.calculatePoints(item.scoreA, item.scoreB, item.actual_scoreA, item.actual_scoreB)
+      points: db.calculatePoints(item.scoreA, item.scoreB, item.actual_scoreA, item.actual_scoreB, item.round, item.penalty_winner, item.actual_penalty_winner)
     }));
     const leaderboard = await db.getLeaderboard();
     const top3 = leaderboard.slice(0, 3);
@@ -368,9 +375,13 @@ app.get('/news', requireAuth, async (req, res) => {
     const top3 = leaderboard.slice(0, 3);
     const newsItems = await db.getNews();
     const newsComments = {};
-    await Promise.all(newsItems.map(async item => {
-      newsComments[item.id] = await db.getCommentsByNewsId(item.id);
-    }));
+    if (newsItems.length > 0) {
+      const allComments = await db.getAllComments();
+      for (const c of allComments) {
+        if (!newsComments[c.news_id]) newsComments[c.news_id] = [];
+        newsComments[c.news_id].push(c);
+      }
+    }
 
     res.render('news', { user: req.user, matches, groups, top3, newsItems, newsComments });
   } catch (err) {
@@ -389,7 +400,7 @@ app.get('/news', requireAuth, async (req, res) => {
       ];
       const leaderboard = await db.getLeaderboard();
       const top3 = leaderboard.slice(0, 3);
-      res.render('news', { user: req.user, matches, groups: emptyGroups, top3, newsComments: {} });
+      res.render('news', { user: req.user, matches, groups: emptyGroups, top3, newsItems: [], newsComments: {} });
     } catch (innerErr) {
       console.error('Fallback news error:', innerErr);
       res.status(500).render('error', { message: 'حدث خطأ في تحميل الأخبار' });
@@ -404,12 +415,14 @@ app.get('/predictions', requireAuth, async (req, res) => {
     const publishedRounds = await db.getPublishedRounds();
     const allMatches = await db.getMatches();
     const roundMatches = allMatches.filter(m => publishedRounds.includes(m.round));
-    const predictions = await Promise.all(roundMatches.map(async match => {
-      const pred = await db.getPrediction(req.user.id, match.id);
-      return { match, prediction: pred, locked: isPredictionLocked(match.start_at) };
+    const userPredictions = await db.getUserPredictions(req.user.id);
+    const userPredMap = new Map(userPredictions.map(p => [p.match_id, p]));
+    const predictions = roundMatches.map(match => ({
+      match,
+      prediction: userPredMap.get(match.id) || null,
+      locked: isPredictionLocked(match.start_at)
     }));
     const leaderboard = await db.getLeaderboard();
-    const userPredictions = await db.getUserPredictions(req.user.id);
     const allMatchesCount = allMatches.length;
     const predictionsCount = userPredictions.length;
     const userRank = leaderboard.findIndex(p => p.id === req.user.id) + 1;
@@ -419,8 +432,9 @@ app.get('/predictions', requireAuth, async (req, res) => {
     // حساب المباريات الفائتة (من مباراة الأرجنتين × الجزائر فصاعداً)
     var missedPredictions = 0;
     var missedMatchNames = [];
+    var lockedMatches = [];
     try {
-      var lockedMatches = allMatches.filter(function(m) {
+      lockedMatches = allMatches.filter(function(m) {
         return publishedRounds.includes(m.round) && isPredictionLocked(m.start_at) && m.id >= db.MISSED_PREDICTIONS_START_MATCH_ID;
       });
       lockedMatches.forEach(function(lm) {
@@ -444,7 +458,9 @@ app.post('/predictions', requireAuth, async (req, res) => {
   try {
     if (req.user.status !== 'approved') return res.redirect('/pending');
     const { matchId, scoreA, scoreB } = req.body;
-    const match = await db.getMatchById(matchId);
+    const matchIdInt = parseInt(matchId, 10);
+    if (Number.isNaN(matchIdInt)) return res.redirect('/predictions');
+    const match = await db.getMatchById(matchIdInt);
     if (!match) return res.redirect('/predictions');
     if (isPredictionLocked(match.start_at)) {
       return res.redirect('/predictions');
@@ -491,9 +507,16 @@ app.get('/players-predictions', requireAuth, async (req, res) => {
     const top3 = leaderboard.slice(0, 3);
     const approvedUsers = await db.getApprovedUsers();
 
-    const matchesWithPredictions = await Promise.all(visibleMatches.map(async match => {
-      const preds = await db.getAllPredictionsForMatch(match.id);
-      return { match, predictions: preds };
+    const visibleMatchIds = visibleMatches.map(m => m.id);
+    const allPreds = await db.getAllPredictionsForMatches(visibleMatchIds);
+    const predsByMatch = {};
+    for (const p of allPreds) {
+      if (!predsByMatch[p.match_id]) predsByMatch[p.match_id] = [];
+      predsByMatch[p.match_id].push(p);
+    }
+    const matchesWithPredictions = visibleMatches.map(match => ({
+      match,
+      predictions: predsByMatch[match.id] || []
     }));
 
     const challengePicks = await db.getAllChallengePicks();
@@ -584,7 +607,9 @@ app.post('/admin/news/edit/:id', requireAuth, requireAdmin, adminLimiter, newsUp
     if (req.file) {
       updateData.image_path = '/uploads/news/' + req.file.filename;
     }
-    await db.updateNews(req.params.id, updateData);
+    const editNewsIdInt = parseInt(req.params.id, 10);
+    if (Number.isNaN(editNewsIdInt)) return res.redirect('/dashboard?tab=news');
+    await db.updateNews(editNewsIdInt, updateData);
     res.redirect('/dashboard?tab=news');
   } catch (err) {
     console.error('Edit news error:', err);
@@ -594,7 +619,9 @@ app.post('/admin/news/edit/:id', requireAuth, requireAdmin, adminLimiter, newsUp
 
 app.post('/admin/news/delete/:id', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
-    const deleted = await db.deleteNews(req.params.id);
+    const newsIdInt = parseInt(req.params.id, 10);
+    if (Number.isNaN(newsIdInt)) return res.redirect('/dashboard?tab=news');
+    const deleted = await db.deleteNews(newsIdInt);
     if (deleted && deleted.image_path && deleted.image_path.startsWith('/uploads/')) {
       const filePath = path.join(__dirname, 'public', deleted.image_path.replace(/^\//, ''));
       try { fs.unlinkSync(filePath); } catch (e) { /* file may not exist */ }
@@ -607,11 +634,12 @@ app.post('/admin/news/delete/:id', requireAuth, requireAdmin, adminLimiter, asyn
 });
 
 // ===== News Comments Routes =====
-const commentTimers = {};
 app.get('/api/news/readers/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const stats = await db.getNewsReadStats(req.params.id);
-    const unreadUsers = await db.getNewsUnreadUsers(req.params.id);
+    const newsIdInt = parseInt(req.params.id, 10);
+    if (isNaN(newsIdInt)) return res.status(400).json({ error: 'Invalid ID' });
+    const stats = await db.getNewsReadStats(newsIdInt);
+    const unreadUsers = await db.getNewsUnreadUsers(newsIdInt);
     stats.unreadUsers = unreadUsers;
     res.json(stats);
   } catch (err) {
@@ -622,7 +650,7 @@ app.get('/api/news/readers/:id', requireAuth, requireAdmin, async (req, res) => 
 
 app.post('/news/read/:id', requireAuth, async (req, res) => {
   try {
-    await db.markNewsAsRead(req.user.id, req.params.id);
+    await db.markNewsAsRead(req.user.id, parseInt(req.params.id, 10));
     res.json({ success: true });
   } catch (err) {
     console.error('Mark news read error:', err);
@@ -636,9 +664,10 @@ app.post('/news/comment', requireAuth, async (req, res) => {
     const { newsId, body } = req.body;
     if (!newsId || !body || !body.trim()) return res.status(400).json({ error: 'التعليق فارغ' });
     if (body.length > 300) return res.status(400).json({ error: 'التعليق طويل جداً (300 حرف كحد أقصى)' });
-    const lastTime = commentTimers[req.user.id] || 0;
-    if (Date.now() - lastTime < 10000) return res.status(429).json({ error: 'الرجاء الانتظار قبل إضافة تعليق آخر' });
-    commentTimers[req.user.id] = Date.now();
+    const lastComment = await db.getLastCommentByUser(req.user.id);
+    if (lastComment && Date.now() - new Date(lastComment.created_at).getTime() < 10000) {
+      return res.status(429).json({ error: 'الرجاء الانتظار قبل إضافة تعليق آخر' });
+    }
     const comment = await db.addComment(parseInt(newsId), req.user.id, body.trim());
     const userComment = { ...comment, user_name: req.user.name };
     res.json({ success: true, comment: userComment });
@@ -649,16 +678,16 @@ app.post('/news/comment', requireAuth, async (req, res) => {
 });
 
 app.post('/admin/comments/hide/:id', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
-  try { await db.hideComment(req.params.id); res.redirect('/dashboard?tab=comments'); } catch (err) { res.redirect('/dashboard?tab=comments'); }
+  try { await db.hideComment(parseInt(req.params.id, 10)); res.redirect('/dashboard?tab=comments'); } catch (err) { res.redirect('/dashboard?tab=comments'); }
 });
 
 app.post('/admin/comments/show/:id', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
-  try { await db.showComment(req.params.id); res.redirect('/dashboard?tab=comments'); } catch (err) { res.redirect('/dashboard?tab=comments'); }
+  try { await db.showComment(parseInt(req.params.id, 10)); res.redirect('/dashboard?tab=comments'); } catch (err) { res.redirect('/dashboard?tab=comments'); }
 });
 
 app.post('/admin/comments/delete/:id', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
-    await db.deleteComment(req.params.id);
+    await db.deleteComment(parseInt(req.params.id, 10));
     if (req.accepts('json')) { res.json({ success: true }); }
     else { res.redirect('/dashboard?tab=comments'); }
   } catch (err) {
@@ -670,7 +699,7 @@ app.post('/admin/comments/delete/:id', requireAuth, requireAdmin, adminLimiter, 
 // ===== Admin Routes =====
 app.post('/admin/toggle-predictions/:matchId', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
-    await db.togglePredictionVisibility(req.params.matchId);
+    await db.togglePredictionVisibility(parseInt(req.params.matchId, 10));
     res.redirect('/dashboard?tab=predictions');
   } catch (err) {
     console.error('Toggle predictions error:', err);
@@ -691,7 +720,10 @@ app.post('/admin/delete-prediction/:matchId/:userId', requireAuth, requireAdmin,
 app.post('/admin/save-prediction/:matchId/:userId', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
     const { scoreA, scoreB } = req.body;
-    await db.savePrediction(parseInt(req.params.userId), parseInt(req.params.matchId), parseInt(scoreA) || 0, parseInt(scoreB) || 0);
+    const matchIdInt = parseInt(req.params.matchId, 10);
+    const userIdInt = parseInt(req.params.userId, 10);
+    if (Number.isNaN(matchIdInt) || Number.isNaN(userIdInt)) return res.redirect('/dashboard?tab=predictions');
+    await db.savePrediction(userIdInt, matchIdInt, parseInt(scoreA, 10) || 0, parseInt(scoreB, 10) || 0);
     res.redirect('/dashboard?tab=predictions');
   } catch (err) {
     console.error('Save prediction error:', err);
@@ -703,6 +735,7 @@ app.post('/admin/toggle-round-predictions', requireAuth, requireAdmin, adminLimi
   try {
     const { round, action } = req.body;
     const roundNum = parseInt(round, 10);
+    if (Number.isNaN(roundNum)) return res.redirect('/dashboard?tab=predictions');
     const allMatches = await db.getMatches();
     const roundMatches = allMatches.filter(m => m.round === roundNum);
     const matchIds = roundMatches.map(m => m.id);
@@ -717,7 +750,7 @@ app.post('/admin/toggle-round-predictions', requireAuth, requireAdmin, adminLimi
 
 app.post('/admin/approve/:id', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
-    await db.approveUser(req.params.id);
+    await db.approveUser(parseInt(req.params.id, 10));
     res.redirect('/dashboard?tab=players');
   } catch (err) {
     console.error('Approve error:', err);
@@ -727,7 +760,7 @@ app.post('/admin/approve/:id', requireAuth, requireAdmin, adminLimiter, async (r
 
 app.post('/admin/reject/:id', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
-    await db.rejectUser(req.params.id);
+    await db.rejectUser(parseInt(req.params.id, 10));
     res.redirect('/dashboard?tab=players');
   } catch (err) {
     console.error('Reject error:', err);
@@ -738,6 +771,7 @@ app.post('/admin/reject/:id', requireAuth, requireAdmin, adminLimiter, async (re
 app.post('/admin/delete/:id', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
     const userId = parseInt(req.params.id, 10);
+    if (Number.isNaN(userId)) return res.redirect('/dashboard?tab=players');
     if (userId === req.user.id) return res.redirect('/dashboard?tab=players');
     await db.deleteUser(userId);
     res.redirect('/dashboard?tab=players');
@@ -750,9 +784,10 @@ app.post('/admin/delete/:id', requireAuth, requireAdmin, adminLimiter, async (re
 app.post('/admin/manual-points', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
     const { userId, points } = req.body;
-    const pts = parseInt(points);
-    if (isNaN(pts) || pts < 0) return res.redirect('/dashboard?tab=players');
-    await db.updateManualPoints(parseInt(userId), pts);
+    const userIdInt = parseInt(userId, 10);
+    const pts = parseInt(points, 10);
+    if (Number.isNaN(userIdInt) || Number.isNaN(pts) || pts < 0) return res.redirect('/dashboard?tab=players');
+    await db.updateManualPoints(userIdInt, pts);
     res.redirect('/dashboard?tab=players');
   } catch (err) {
     console.error('Manual points error:', err);
@@ -763,7 +798,9 @@ app.post('/admin/manual-points', requireAuth, requireAdmin, adminLimiter, async 
 app.post('/admin/round', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
     const { round } = req.body;
-    await db.setCurrentRound(parseInt(round));
+    const roundNum = parseInt(round, 10);
+    if (Number.isNaN(roundNum)) return res.redirect('/dashboard');
+    await db.setCurrentRound(roundNum);
     await db.calculateGroupStandings();
     res.redirect('/dashboard');
   } catch (err) {
@@ -775,7 +812,9 @@ app.post('/admin/round', requireAuth, requireAdmin, adminLimiter, async (req, re
 app.post('/admin/publish-round', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
     const { round } = req.body;
-    await db.publishRound(parseInt(round));
+    const roundNum = parseInt(round, 10);
+    if (Number.isNaN(roundNum)) return res.redirect('/dashboard?tab=rounds');
+    await db.publishRound(roundNum);
     res.redirect('/dashboard?tab=rounds');
   } catch (err) {
     console.error('Publish error:', err);
@@ -786,7 +825,9 @@ app.post('/admin/publish-round', requireAuth, requireAdmin, adminLimiter, async 
 app.post('/admin/unpublish-round', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
     const { round } = req.body;
-    await db.unpublishRound(parseInt(round));
+    const roundNum = parseInt(round, 10);
+    if (Number.isNaN(roundNum)) return res.redirect('/dashboard?tab=rounds');
+    await db.unpublishRound(roundNum);
     res.redirect('/dashboard?tab=rounds');
   } catch (err) {
     console.error('Unpublish error:', err);
@@ -809,17 +850,20 @@ app.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
       if (!matchesByRound[m.round]) matchesByRound[m.round] = [];
       matchesByRound[m.round].push(m);
     });
-    // جلب التوقعات لكل مباراة (محمي من الأخطاء)
+    // جلب التوقعات لكل مباراة (دفعة واحدة)
     var matchPredictions = {};
     try {
-      await Promise.all(matches.map(async m => {
-        matchPredictions[m.id] = await db.getAllPredictionsForMatch(m.id);
-      }));
+      const allMatchIds = matches.map(m => m.id);
+      const allPreds = await db.getAllPredictionsForMatches(allMatchIds);
+      for (const p of allPreds) {
+        if (!matchPredictions[p.match_id]) matchPredictions[p.match_id] = [];
+        matchPredictions[p.match_id].push(p);
+      }
     } catch (err) {
       console.error('Error loading match predictions:', err.message || err);
     }
     // Compute missed predictions per user (محمي من الأخطاء)
-    // يتم احتساب المباريات الفائتة ابتداءً من مباراة الأرجنتين × الجزائر (ID 715) بسبب استئناف المسابقة بعد فقدان البيانات السابقة
+    // يتم احتساب المباريات الفائتة ابتداءً من MISSED_PREDICTIONS_START_MATCH_ID
     var leaderboardWithMissed = leaderboard;
     try {
       var lockedPublishedMatches = matches.filter(function(m) {
@@ -855,8 +899,11 @@ app.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
     const challengePicks = await db.getAllChallengePicks();
     const challengeResults = await db.getChallengeResults();
     const newsReadStats = {};
-    for (const item of newsItems) {
-      newsReadStats[item.id] = await db.getNewsReadStats(item.id);
+    if (newsItems.length > 0) {
+      const allStats = await db.getAllNewsReadStats();
+      for (const s of allStats) {
+        newsReadStats[s.news_id] = s;
+      }
     }
     // بيانات الأدوار الإقصائية
     var seedingPairings = null;
@@ -884,8 +931,10 @@ app.post('/admin/knockout-teams/:id', requireAuth, requireAdmin, adminLimiter, a
   try {
     const { id } = req.params;
     const { teamA, teamB } = req.body;
+    const matchIdInt = parseInt(id, 10);
+    if (Number.isNaN(matchIdInt)) return res.redirect('/dashboard?tab=knockout');
     if (!teamA || !teamB) return res.redirect('/dashboard?tab=knockout');
-    await db.updateKnockoutTeams(parseInt(id), teamA.trim(), teamB.trim());
+    await db.updateKnockoutTeams(matchIdInt, teamA.trim(), teamB.trim());
     res.redirect('/dashboard?tab=knockout');
   } catch (err) {
     console.error('Knockout teams error:', err);
@@ -898,7 +947,9 @@ app.post('/matches/:id/result', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { scoreA, scoreB, actualWinner } = req.body;
-    const match = await db.getMatchById(id);
+    const matchIdInt = parseInt(id, 10);
+    if (Number.isNaN(matchIdInt)) return res.redirect('/dashboard?tab=results');
+    const match = await db.getMatchById(matchIdInt);
     if (!match) return res.redirect('/dashboard?tab=results');
     
     // لو فاضيين لكلاهما → مسح النتيجة
@@ -951,7 +1002,7 @@ app.post('/admin/change-password', requireAuth, requireAdmin, adminLimiter, asyn
       return res.status(404).render('error', { message: 'المستخدم غير موجود' });
     }
     
-    const validPassword = await bcrypt.compare(currentPassword, user.password);
+    const validPassword = await bcrypt.compare(currentPassword, user.password_hash);
     if (!validPassword) {
       return res.status(400).render('error', { message: 'كلمة المرور الحالية غير صحيحة' });
     }
@@ -1076,6 +1127,7 @@ app.use((err, req, res, next) => {
 });
 
 // ===== Start Server (بعد تهيئة قاعدة البيانات) =====
+let server;
 // Ensure uploads/news directory exists
 if (!fs.existsSync(newsUploadDir)) {
   fs.mkdirSync(newsUploadDir, { recursive: true });
@@ -1087,7 +1139,7 @@ db.init()
     await db.initNewsTable();
     await db.initNewsCommentsTable();
     await db.initNewsReadsTable();
-    app.listen(PORT, () => {
+    server = app.listen(PORT, () => {
       console.log(`✓ Server running on http://localhost:${PORT}`);
     });
   })
@@ -1098,4 +1150,20 @@ db.init()
 
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled rejection:', err);
+});
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, closing server...');
+  server.close(() => {
+    db.pool.end();
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, closing server...');
+  server.close(() => {
+    db.pool.end();
+    process.exit(0);
+  });
 });

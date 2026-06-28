@@ -1286,11 +1286,12 @@
       fetch('/api/news/readers/' + newsId)
         .then(function(r){ return r.json(); })
         .then(function(data){
+          function escName(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
           okEl.innerHTML = data.readers && data.readers.length > 0
-            ? data.readers.map(function(u){ return '<div>✅ ' + u.name + '</div>'; }).join('')
+            ? data.readers.map(function(u){ return '<div>✅ ' + escName(u.name) + '</div>'; }).join('')
             : '<div style="color:#94a3b8;">لا يوجد</div>';
           noEl.innerHTML = data.unreadUsers && data.unreadUsers.length > 0
-            ? data.unreadUsers.map(function(u){ return '<div>❌ ' + u.name + '</div>'; }).join('')
+            ? data.unreadUsers.map(function(u){ return '<div>❌ ' + escName(u.name) + '</div>'; }).join('')
             : '<div style="color:#94a3b8;">الكل قرأ الخبر</div>';
         })
         .catch(function(){

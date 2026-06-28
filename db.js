@@ -9,11 +9,14 @@ types.setTypeParser(1114, (val) => new Date(val + 'Z'));
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
   ssl: process.env.DATABASE_URL?.includes('sslmode=require') ? { rejectUnauthorized: false } : false
 });
 
 // نقطة البداية لاحتساب المباريات الفائتة (بعد فقدان البيانات القديمة)
-const MISSED_PREDICTIONS_START_MATCH_ID = 715; // الأرجنتين × الجزائر — 17 يونيو 2026
+const MISSED_PREDICTIONS_START_MATCH_ID = 513; // أول مباراة في قاعدة البيانات الحالية
 
 const GROUPS = {
   'المجموعة A': ['المكسيك', 'جنوب أفريقيا', 'كوريا الجنوبية', 'التشيك'],
@@ -420,8 +423,11 @@ async function init() {
 
     await client.query('CREATE INDEX IF NOT EXISTS idx_predictions_user_id ON predictions(user_id)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_predictions_match_id ON predictions(match_id)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_predictions_points ON predictions(points)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_matches_start_at ON matches(start_at)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_matches_round ON matches(round)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_users_role_status ON users(role, status)');
 
     const valueTypeCheck = await client.query("SELECT data_type FROM information_schema.columns WHERE table_name='settings' AND column_name='value'");
     if (valueTypeCheck.rows.length > 0 && valueTypeCheck.rows[0].data_type === 'character varying') {
@@ -471,14 +477,18 @@ async function init() {
     await client.query("DELETE FROM settings WHERE key = 'tz_migration_done'");
 
     const adminUsername = process.env.ADMIN_USERNAME || 'admin';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-    const adminCheck = await client.query("SELECT id FROM users WHERE username = $1", [adminUsername]);
-    if (adminCheck.rows.length === 0) {
-      const hash = bcrypt.hashSync(adminPassword, 10);
-      await client.query(
-        "INSERT INTO users (name, username, password_hash, role, status) VALUES ($1, $2, $3, $4, $5)",
-        ['المدير', adminUsername, hash, 'admin', 'approved']
-      );
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      console.error('WARNING: ADMIN_PASSWORD env var is not set. Admin account creation skipped.');
+    } else {
+      const adminCheck = await client.query("SELECT id FROM users WHERE username = $1", [adminUsername]);
+      if (adminCheck.rows.length === 0) {
+        const hash = bcrypt.hashSync(adminPassword, 10);
+        await client.query(
+          "INSERT INTO users (name, username, password_hash, role, status) VALUES ($1, $2, $3, $4, $5)",
+          ['المدير', adminUsername, hash, 'admin', 'approved']
+        );
+      }
     }
 
     const settingsCheck = await client.query("SELECT value FROM settings WHERE key = 'current_round'");
@@ -489,24 +499,23 @@ async function init() {
     const matchesCheck = await client.query('SELECT COUNT(*) FROM matches');
     const expectedCount = 103;
     const currentCount = parseInt(matchesCheck.rows[0].count);
-    if (currentCount !== expectedCount) {
-      console.log(`Matches count is ${currentCount}, expected ${expectedCount}. Adding missing matches only...`);
-      await client.query('DELETE FROM matches WHERE id NOT IN (SELECT DISTINCT match_id FROM predictions)');
+    if (currentCount < expectedCount) {
+      console.log(`Matches count is ${currentCount}, expected ${expectedCount}. Adding missing matches only (no deletion)...`);
+      const existingTeams = await client.query('SELECT teamA, teamB, round, start_at FROM matches');
+      const existingKeys = new Set(existingTeams.rows.map(r => `${r.teama}|${r.teamb}|${r.round}`));
       const fixtures = generateFixtures();
+      let added = 0;
       for (const fixture of fixtures) {
-        await client.query(
-          'INSERT INTO matches (teamA, teamB, stage, start_at, round) VALUES ($1, $2, $3, $4, $5)',
-          [fixture.teamA, fixture.teamB, fixture.stage, fixture.start, fixture.round]
-        );
+        const key = `${fixture.teamA}|${fixture.teamB}|${fixture.round}`;
+        if (!existingKeys.has(key)) {
+          await client.query(
+            'INSERT INTO matches (teamA, teamB, stage, start_at, round) VALUES ($1, $2, $3, $4, $5)',
+            [fixture.teamA, fixture.teamB, fixture.stage, fixture.start, fixture.round]
+          );
+          added++;
+        }
       }
-      console.log(`Created ${fixtures.length} matches`);
-    } else if (currentCount > 0) {
-      const sampleMatch = await client.query('SELECT teamA FROM matches LIMIT 1');
-      const expectedTeams = Object.values(GROUPS).flat();
-      if (!expectedTeams.includes(sampleMatch.rows[0].teama)) {
-        console.log('Match team names are outdated. Skipping recreation to protect predictions...');
-        // removed DELETE + recreate to protect predictions
-      }
+      console.log(`Added ${added} missing matches (total now: ${currentCount + added})`);
     }
 
     await client.query('COMMIT');
@@ -584,9 +593,24 @@ async function deleteUser(userId) {
   await pool.query('DELETE FROM users WHERE id = $1 AND role != $2', [userId, 'admin']);
 }
 
+let matchesCache = null;
+let matchesCacheTime = 0;
+const MATCHES_CACHE_TTL = 5000;
+
 async function getMatches() {
+  const now = Date.now();
+  if (matchesCache && (now - matchesCacheTime) < MATCHES_CACHE_TTL) {
+    return matchesCache;
+  }
   const result = await pool.query('SELECT * FROM matches ORDER BY start_at ASC');
-  return result.rows.map(normalizeMatch);
+  matchesCache = result.rows.map(normalizeMatch);
+  matchesCacheTime = now;
+  return matchesCache;
+}
+
+function invalidateMatchesCache() {
+  matchesCache = null;
+  matchesCacheTime = 0;
 }
 
 async function getCurrentRound() {
@@ -713,6 +737,19 @@ async function getAllPredictionsForMatch(matchId) {
   return result.rows.map(normalizePrediction);
 }
 
+async function getAllPredictionsForMatches(matchIds) {
+  if (matchIds.length === 0) return [];
+  const result = await pool.query(`
+    SELECT p.*, u.name AS user_name, m.teamA, m.teamB, m.stage, m.start_at, m.round, m.actual_scoreA, m.actual_scoreB, m.penalty_winner AS actual_penalty_winner
+    FROM predictions p
+    JOIN users u ON p.user_id = u.id
+    JOIN matches m ON p.match_id = m.id
+    WHERE p.match_id = ANY($1)
+    ORDER BY m.start_at ASC, u.name ASC
+  `, [matchIds]);
+  return result.rows.map(normalizePrediction);
+}
+
 async function deletePrediction(matchId, userId) {
   await pool.query('DELETE FROM predictions WHERE match_id = $1 AND user_id = $2', [matchId, userId]);
 }
@@ -743,7 +780,7 @@ async function getPrediction(userId, matchId) {
 
 async function getUserPredictions(userId) {
   const result = await pool.query(`
-    SELECT p.*, m.teamA, m.teamB, m.stage, m.start_at, m.round, m.actual_scoreA, m.actual_scoreB
+    SELECT p.*, m.teamA, m.teamB, m.stage, m.start_at, m.round, m.actual_scoreA, m.actual_scoreB, m.penalty_winner AS actual_penalty_winner
     FROM predictions p
     JOIN matches m ON p.match_id = m.id
     WHERE p.user_id = $1
@@ -769,6 +806,7 @@ async function updateKnockoutTeams(matchId, teamA, teamB) {
     'UPDATE matches SET teamA = $1, teamB = $2 WHERE id = $3',
     [teamA, teamB, matchId]
   );
+  invalidateMatchesCache();
 }
 
 async function updateMatchResult(matchId, scoreA, scoreB, actualWinner, penaltyWinner) {
@@ -777,11 +815,13 @@ async function updateMatchResult(matchId, scoreA, scoreB, actualWinner, penaltyW
       'UPDATE matches SET actual_scoreA = NULL, actual_scoreB = NULL, actual_winner = NULL, penalty_winner = NULL WHERE id = $1',
       [matchId]
     );
+    invalidateMatchesCache();
   } else {
     await pool.query(
       'UPDATE matches SET actual_scoreA = $1, actual_scoreB = $2, actual_winner = COALESCE($3, actual_winner), penalty_winner = COALESCE($4, penalty_winner) WHERE id = $5',
       [scoreA, scoreB, actualWinner || null, penaltyWinner || null, matchId]
     );
+    invalidateMatchesCache();
   }
 }
 
@@ -794,7 +834,7 @@ async function getLeaderboard() {
       COUNT(p.id) AS predictions_count,
       COALESCE(SUM(
         CASE
-          WHEN p.scoreA = m.actual_scoreA AND p.scoreB = m.actual_scoreB THEN 1
+          WHEN p.points >= 20 THEN 1
           ELSE 0
         END
       ), 0)::int AS correct_predictions,
@@ -820,6 +860,10 @@ async function getLeaderboard() {
 
 async function updateManualPoints(userId, points) {
   await pool.query('UPDATE users SET manual_points = $1 WHERE id = $2', [points, userId]);
+}
+
+async function addManualPoints(userId, points) {
+  await pool.query('UPDATE users SET manual_points = manual_points + $1 WHERE id = $2', [points, userId]);
 }
 
 async function getChallengeConfig() {
@@ -1127,6 +1171,7 @@ function normalizePrediction(row) {
     user_name: row.user_name || row.username || null,
     predicted_winner: row.predicted_winner || row.predictedwinner || null,
     penalty_winner: row.penalty_winner || row.penaltywinner || null,
+    actual_penalty_winner: row.actual_penalty_winner || null,
     points: row.points != null ? parseInt(row.points) : 0
   };
 }
@@ -1205,29 +1250,37 @@ function calculatePoints(predA, predB, actA, actB, round, predPenaltyWinner, act
 
 async function recalculateAllPredictionPoints() {
   try {
-    var predictions = await pool.query(`
-      SELECT p.id, p.user_id, p.match_id, p.scoreA, p.scoreB, p.penalty_winner,
-        m.actual_scoreA, m.actual_scoreB, m.round, m.penalty_winner AS actual_penalty_winner
-      FROM predictions p
-      JOIN matches m ON p.match_id = m.id
-      WHERE m.actual_scoreA IS NOT NULL AND m.actual_scoreB IS NOT NULL
+    const result = await pool.query(`
+      UPDATE predictions p
+      SET points = CASE
+        WHEN m.round < 4 THEN
+          CASE
+            WHEN p.scoreA = m.actual_scoreA AND p.scoreB = m.actual_scoreB THEN 20
+            WHEN SIGN(p.scoreA - p.scoreB) = SIGN(m.actual_scoreA - m.actual_scoreB) THEN
+              CASE WHEN (p.scoreA - p.scoreB) = (m.actual_scoreA - m.actual_scoreB) THEN 15 ELSE 10 END
+            ELSE 0
+          END
+        ELSE
+          CASE
+            WHEN p.scoreA = m.actual_scoreA AND p.scoreB = m.actual_scoreB THEN 25
+            WHEN SIGN(p.scoreA - p.scoreB) = SIGN(m.actual_scoreA - m.actual_scoreB) THEN
+              CASE WHEN (p.scoreA - p.scoreB) = (m.actual_scoreA - m.actual_scoreB) THEN 15 ELSE 10 END
+            ELSE 0
+          END +
+          CASE
+            WHEN p.scoreA = p.scoreB AND m.actual_scoreA = m.actual_scoreB
+                 AND p.penalty_winner IS NOT NULL AND m.penalty_winner IS NOT NULL
+                 AND p.penalty_winner = m.penalty_winner THEN 5
+            ELSE 0
+          END
+      END
+      FROM matches m
+      WHERE p.match_id = m.id
+        AND m.actual_scoreA IS NOT NULL
+        AND m.actual_scoreB IS NOT NULL
+      RETURNING p.id
     `);
-
-    for (var row of predictions.rows) {
-      var pts = calculatePoints(
-        row.scorea != null ? row.scorea : row.scoreA,
-        row.scoreb != null ? row.scoreb : row.scoreB,
-        row.actual_scorea != null ? row.actual_scorea : row.actual_scoreA,
-        row.actual_scoreb != null ? row.actual_scoreb : row.actual_scoreB,
-        row.round,
-        row.penalty_winner || row.penaltywinner || null,
-        row.actual_penalty_winner || null
-      );
-      var predId = row.id;
-      await pool.query('UPDATE predictions SET points = $1 WHERE id = $2', [pts, predId]);
-    }
-
-    return predictions.rows.length;
+    return result.rows.length;
   } catch (err) {
     console.error('recalculateAllPredictionPoints error:', err);
     throw err;
@@ -1252,6 +1305,7 @@ module.exports = {
   rejectUser,
   deleteUser,
   getMatches,
+  invalidateMatchesCache,
   getCurrentRound,
   setCurrentRound,
   getPublishedRounds,
@@ -1262,6 +1316,7 @@ module.exports = {
   togglePredictionVisibility,
   toggleRoundPredictionsVisibility,
   getAllPredictionsForMatch,
+  getAllPredictionsForMatches,
   deletePrediction,
   getMatchById,
   savePrediction,
@@ -1273,6 +1328,7 @@ module.exports = {
   getLeaderboard,
   getLeaderboardStats,
   updateManualPoints,
+  addManualPoints,
   getChallengeConfig,
   setChallengeDeadline,
   setChallengeOpen,
@@ -1294,6 +1350,7 @@ module.exports = {
   markNewsAsRead,
   getUnreadNewsCount,
   getNewsReadStats,
+  getAllNewsReadStats,
   getNewsUnreadUsers,
   getNews,
   addNews,
@@ -1303,6 +1360,7 @@ module.exports = {
   getCommentsByNewsId,
   getApprovedUsers,
   getAllComments,
+  getLastCommentByUser,
   hideComment,
   showComment,
   deleteComment,
@@ -1516,7 +1574,7 @@ async function advanceToRound32(allMatches) {
     if (!p.teamA || !p.teamB) continue;
     // نحدث بس لو الفرق لسه placeholder
     const isPlaceholder = (t) => !t || t.startsWith('ثاني') || t.startsWith('أول') || t.startsWith('ثالث') || t.startsWith('فائز');
-    if (isPlaceholder(m.teamA)) {
+    if (isPlaceholder(m.teamA) || isPlaceholder(m.teamB)) {
       await updateKnockoutTeams(m.id, p.teamA, p.teamB);
     }
   }
@@ -1551,6 +1609,7 @@ async function advanceWinnersInRound(allMatches, fromRound, toRound) {
 // ===== التقدم عبر مسار الأدوار الإقصائية (النظام الجديد) =====
 // يستخدم winner_to_match_id و winner_to_side المخزنين في جدول matches
 async function advanceWinnersByBracket(allMatches, fromRound) {
+  let changed = false;
   const fromMatches = allMatches.filter(m => m.round === fromRound && m.winner_to_match_id);
   for (const match of fromMatches) {
     const winner = getMatchWinner(match);
@@ -1560,13 +1619,16 @@ async function advanceWinnersByBracket(allMatches, fromRound) {
     if (match.winner_to_side === 'teamA') {
       if (toMatch.teamA !== winner) {
         await pool.query('UPDATE matches SET teamA = $1 WHERE id = $2', [winner, toMatch.id]);
+        changed = true;
       }
     } else if (match.winner_to_side === 'teamB') {
       if (toMatch.teamB !== winner) {
         await pool.query('UPDATE matches SET teamB = $1 WHERE id = $2', [winner, toMatch.id]);
+        changed = true;
       }
     }
   }
+  if (changed) invalidateMatchesCache();
 }
 
 function getMatchWinner(match) {
@@ -1690,6 +1752,25 @@ async function getNewsReadStats(newsId) {
   };
 }
 
+async function getAllNewsReadStats() {
+  const totalUsers = await pool.query("SELECT COUNT(*) FROM users WHERE role != 'admin' AND status = 'approved'");
+  const total = parseInt(totalUsers.rows[0].count) || 0;
+  const result = await pool.query(`
+    SELECT nr.news_id, COUNT(*) as read_count
+    FROM news_reads nr
+    JOIN users u ON nr.user_id = u.id
+    WHERE u.role != 'admin' AND u.status = 'approved'
+    GROUP BY nr.news_id
+  `);
+  return result.rows.map(row => ({
+    news_id: parseInt(row.news_id),
+    total,
+    readCount: parseInt(row.read_count),
+    unreadCount: total - parseInt(row.read_count),
+    readRate: total > 0 ? Math.round((parseInt(row.read_count) / total) * 100) : 0
+  }));
+}
+
 async function getNewsUnreadUsers(newsId) {
   const result = await pool.query(`
     SELECT u.id, u.name FROM users u
@@ -1763,13 +1844,21 @@ async function getCommentsByNewsId(newsId) {
 
 async function getAllComments() {
   const result = await pool.query(`
-    SELECT c.*, u.name AS user_name, n.title AS news_title
+    SELECT c.*, u.name AS user_name
     FROM news_comments c
     JOIN users u ON c.user_id = u.id
-    JOIN news n ON c.news_id = n.id
+    WHERE c.visible = true
     ORDER BY c.created_at DESC
   `);
   return result.rows;
+}
+
+async function getLastCommentByUser(userId) {
+  const result = await pool.query(
+    'SELECT * FROM news_comments WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
+    [userId]
+  );
+  return result.rows[0] || null;
 }
 
 async function hideComment(commentId) {
