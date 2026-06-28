@@ -267,53 +267,7 @@
                   <form method="POST" action="/admin/reject/<%= u.id %>" style="margin:0;">
                     <button type="submit" class="db-btn db-btn-reject">✕ رفض</button>
                 </form>
-              </div>
-
-              <!-- فحص المسار -->
-              <% if (bracketVerification) { %>
-              <div style="margin-top:20px;padding:14px;background:var(--bg);border-radius:10px;">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-                  <span style="font-weight:700;font-size:0.9rem;">فحص مسار الأدوار الإقصائية</span>
-                  <% if (bracketVerification.valid) { %>
-                    <span style="background:#16a34a;color:#fff;padding:2px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;">✓ سليم</span>
-                  <% } else { %>
-                    <span style="background:#dc2626;color:#fff;padding:2px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;">✗ مشاكل</span>
-                  <% } %>
                 </div>
-                <!-- إحصائيات -->
-                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-                  <% var roundLabels = {4:'R32',5:'R16',6:'QF',7:'SF',8:'FINAL'}; %>
-                  <% for (var r = 4; r <= 8; r++) { %>
-                    <% var c = bracketVerification.counts[r]; %>
-                    <span style="font-size:0.75rem;background:var(--surface);padding:4px 10px;border-radius:6px;border:1px solid var(--border);">
-                      <strong><%= roundLabels[r] %></strong>: <%= c.total %> مباريات
-                      (<%= c.with_label %> مسار)
-                    </span>
-                  <% } %>
-                </div>
-                <% if (bracketVerification.issues.length > 0) { %>
-                  <div style="font-size:0.8rem;color:#dc2626;">
-                    <% bracketVerification.issues.forEach(function(issue) { %>
-                      <div style="padding:2px 0;">• <%= issue %></div>
-                    <% }); %>
-                  </div>
-                <% } %>
-                <% if (bracketVerification.warnings.length > 0) { %>
-                  <div style="font-size:0.78rem;color:#d97706;margin-top:6px;">
-                    <% bracketVerification.warnings.forEach(function(w) { %>
-                      <div style="padding:2px 0;">• <%= w %></div>
-                    <% }); %>
-                  </div>
-                <% } %>
-              </div>
-              <% } %>
-
-              <div style="margin-top:16px;">
-                <form method="POST" action="/admin/rebuild-knockout" style="margin:0;" onsubmit="return confirm('تحذير! إعادة بناء الأدوار الإقصائية:\n\n• سيتم إعادة تعيين جميع المواجهات إلى الوضع الافتراضي\n• لن يتم حذف النتائج أو التوقعات\n• سيتم إنشاء backup تلقائي قبل التنفيذ\n• لا يمكن التراجع عن هذا الإجراء\n\nهل أنت متأكد؟')">
-                  <button type="submit" class="db-btn" style="padding:10px 20px;font-size:0.85rem;background:#dc2626;color:#fff;border:none;border-radius:10px;cursor:pointer;">
-                    إعادة بناء الأدوار الإقصائية
-                  </button>
-                </form>
               </div>
               <% }) %>
             </div>
