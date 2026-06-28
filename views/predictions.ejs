@@ -619,7 +619,7 @@
     function prTogglePenalty(input) {
       var form = input.closest('.pr-pred-form');
       if (!form) return;
-      var inputs = form.querySelectorAll('.pr-score-pr');
+      var inputs = form.querySelectorAll('.pr-score-input');
       if (inputs.length < 2) return;
       var a = parseInt(inputs[0].value) || 0;
       var b = parseInt(inputs[1].value) || 0;
@@ -627,13 +627,13 @@
       if (!matchId) return;
       var penaltyEl = document.getElementById('prPenalty' + matchId.value);
       if (penaltyEl) {
-        penaltyEl.style.display = (a === b) ? 'block' : 'none';
+        penaltyEl.style.display = (a === b) ? 'flex' : 'none';
       }
     }
     // Activate penalty pickers on load for saved predictions
     document.addEventListener('DOMContentLoaded', function(){
       document.querySelectorAll('.pr-pred-form').forEach(function(form){
-        var inputs = form.querySelectorAll('.pr-score-pr');
+        var inputs = form.querySelectorAll('.pr-score-input');
         if (inputs.length === 2 && inputs[0].value && inputs[1].value) {
           var a = parseInt(inputs[0].value) || 0;
           var b = parseInt(inputs[1].value) || 0;
@@ -641,7 +641,7 @@
             var matchId = form.querySelector('input[name="matchId"]');
             if (matchId) {
               var penaltyEl = document.getElementById('prPenalty' + matchId.value);
-              if (penaltyEl) penaltyEl.style.display = 'block';
+              if (penaltyEl) penaltyEl.style.display = 'flex';
             }
           }
         }

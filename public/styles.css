@@ -3002,7 +3002,7 @@ ol.rule-list li::before {
   min-width: 0;
 }
 .pr-row-team-a { justify-content: flex-start; }
-.pr-row-team-b { justify-content: flex-end; flex-direction: row-reverse; }
+.pr-row-team-b { justify-content: flex-end; }
 .pr-team-name {
   font-size: 0.92rem;
   font-weight: 700;
