@@ -54,22 +54,22 @@ const BRACKET_SLOTS = {
     { label: 'R32-07', teamA: { type: 'group_first', group: 'A' }, teamB: { type: 'best_third', index: 3 }, winnerTo: 'R16-04', side: 'teamA' },
     // M56 / FIFA M80: أول L vs BestThird → R16-04 teamB
     { label: 'R32-08', teamA: { type: 'group_first', group: 'L' }, teamB: { type: 'best_third', index: 4 }, winnerTo: 'R16-04', side: 'teamB' },
-    // M57 / FIFA M82: أول G vs BestThird → R16-06 teamA
-    { label: 'R32-09', teamA: { type: 'group_first', group: 'G' }, teamB: { type: 'best_third', index: 5 }, winnerTo: 'R16-06', side: 'teamA' },
-    // M58 / FIFA M81: أول D vs BestThird → R16-06 teamB
-    { label: 'R32-10', teamA: { type: 'group_first', group: 'D' }, teamB: { type: 'best_third', index: 6 }, winnerTo: 'R16-06', side: 'teamB' },
-    // M59 / FIFA M84: أول H vs ثاني J → R16-05 teamA
-    { label: 'R32-11', teamA: { type: 'group_first', group: 'H' }, teamB: { type: 'group_second', group: 'J' }, winnerTo: 'R16-05', side: 'teamA' },
-    // M60 / FIFA M83: ثاني K vs ثاني L → R16-05 teamB
-    { label: 'R32-12', teamA: { type: 'group_second', group: 'K' }, teamB: { type: 'group_second', group: 'L' }, winnerTo: 'R16-05', side: 'teamB' },
+    // M57 / FIFA M82: أول G vs BestThird → R16-05 teamA
+    { label: 'R32-09', teamA: { type: 'group_first', group: 'G' }, teamB: { type: 'best_third', index: 5 }, winnerTo: 'R16-05', side: 'teamA' },
+    // M58 / FIFA M81: أول D vs BestThird → R16-06 teamA
+    { label: 'R32-10', teamA: { type: 'group_first', group: 'D' }, teamB: { type: 'best_third', index: 6 }, winnerTo: 'R16-06', side: 'teamA' },
+    // M59 / FIFA M84: أول H vs ثاني J → R16-05 teamB
+    { label: 'R32-11', teamA: { type: 'group_first', group: 'H' }, teamB: { type: 'group_second', group: 'J' }, winnerTo: 'R16-05', side: 'teamB' },
+    // M60 / FIFA M83: ثاني K vs ثاني L → R16-08 teamB
+    { label: 'R32-12', teamA: { type: 'group_second', group: 'K' }, teamB: { type: 'group_second', group: 'L' }, winnerTo: 'R16-08', side: 'teamB' },
     // M61 / FIFA M85: أول B vs BestThird → R16-08 teamA
     { label: 'R32-13', teamA: { type: 'group_first', group: 'B' }, teamB: { type: 'best_third', index: 7 }, winnerTo: 'R16-08', side: 'teamA' },
-    // M62 / FIFA M88: ثاني D vs ثاني G → R16-07 teamA
-    { label: 'R32-14', teamA: { type: 'group_second', group: 'D' }, teamB: { type: 'group_second', group: 'G' }, winnerTo: 'R16-07', side: 'teamA' },
-    // M63 / FIFA M86: أول J vs ثاني H → R16-07 teamB
-    { label: 'R32-15', teamA: { type: 'group_first', group: 'J' }, teamB: { type: 'group_second', group: 'H' }, winnerTo: 'R16-07', side: 'teamB' },
-    // M64 / FIFA M87: أول K vs BestThird → R16-08 teamB
-    { label: 'R32-16', teamA: { type: 'group_first', group: 'K' }, teamB: { type: 'best_third', index: 8 }, winnerTo: 'R16-08', side: 'teamB' },
+    // M62 / FIFA M88: ثاني D vs ثاني G → R16-07 teamB
+    { label: 'R32-14', teamA: { type: 'group_second', group: 'D' }, teamB: { type: 'group_second', group: 'G' }, winnerTo: 'R16-07', side: 'teamB' },
+    // M63 / FIFA M86: أول J vs ثاني H → R16-07 teamA
+    { label: 'R32-15', teamA: { type: 'group_first', group: 'J' }, teamB: { type: 'group_second', group: 'H' }, winnerTo: 'R16-07', side: 'teamA' },
+    // M64 / FIFA M87: أول K vs BestThird → R16-06 teamB
+    { label: 'R32-16', teamA: { type: 'group_first', group: 'K' }, teamB: { type: 'best_third', index: 8 }, winnerTo: 'R16-06', side: 'teamB' },
   ],
   round5: [ // دور الـ 16 — حسب ترتيب المباريات في generateFixtures
     // M65 / FIFA M89: فائز R32-01 vs فائز R32-04 → QF-01 teamA
@@ -80,13 +80,13 @@ const BRACKET_SLOTS = {
     { label: 'R16-03', winnerTo: 'QF-03', side: 'teamA' },
     // M68 / FIFA M92: فائز R32-07 vs فائز R32-08 → QF-03 teamB
     { label: 'R16-04', winnerTo: 'QF-03', side: 'teamB' },
-    // M69 / FIFA M93: فائز R32-11 vs فائز R32-12 → QF-02 teamA
+    // M69 / FIFA M93: فائز R32-09 vs فائز R32-11 → QF-02 teamA
     { label: 'R16-05', winnerTo: 'QF-02', side: 'teamA' },
-    // M70 / FIFA M94: فائز R32-09 vs فائز R32-10 → QF-02 teamB
+    // M70 / FIFA M94: فائز R32-10 vs فائز R32-16 → QF-02 teamB
     { label: 'R16-06', winnerTo: 'QF-02', side: 'teamB' },
-    // M71 / FIFA M95: فائز R32-14 vs فائز R32-15 → QF-04 teamA
+    // M71 / FIFA M95: فائز R32-15 vs فائز R32-14 → QF-04 teamA
     { label: 'R16-07', winnerTo: 'QF-04', side: 'teamA' },
-    // M72 / FIFA M96: فائز R32-13 vs فائز R32-16 → QF-04 teamB
+    // M72 / FIFA M96: فائز R32-13 vs فائز R32-12 → QF-04 teamB
     { label: 'R16-08', winnerTo: 'QF-04', side: 'teamB' },
   ],
   round6: [ // ربع النهائي
@@ -283,16 +283,16 @@ function generateFixtures() {
   fixtures.push({ teamA: 'فائز م55', teamB: 'فائز م56', stage: 'دور الـ 16', round: 5, start: '2026-07-06T00:00:00Z' }); // 8pm ET
 
   // يوم 6 يوليو (الإثنين)
-  // R16-05: فائز R32-11 (م59) vs فائز R32-12 (م60)
-  fixtures.push({ teamA: 'فائز م59', teamB: 'فائز م60', stage: 'دور الـ 16', round: 5, start: '2026-07-06T19:00:00Z' }); // 3pm ET
-  // R16-06: فائز R32-09 (م57) vs فائز R32-10 (م58)
-  fixtures.push({ teamA: 'فائز م57', teamB: 'فائز م58', stage: 'دور الـ 16', round: 5, start: '2026-07-06T21:00:00Z' }); // 5pm ET
+  // R16-05: فائز R32-09 (م57) vs فائز R32-11 (م59)
+  fixtures.push({ teamA: 'فائز م57', teamB: 'فائز م59', stage: 'دور الـ 16', round: 5, start: '2026-07-06T19:00:00Z' }); // 3pm ET
+  // R16-06: فائز R32-10 (م58) vs فائز R32-16 (م64)
+  fixtures.push({ teamA: 'فائز م58', teamB: 'فائز م64', stage: 'دور الـ 16', round: 5, start: '2026-07-06T21:00:00Z' }); // 5pm ET
 
   // يوم 7 يوليو (الثلاثاء)
-  // R16-07: فائز R32-14 (م62) vs فائز R32-15 (م63)
-  fixtures.push({ teamA: 'فائز م62', teamB: 'فائز م63', stage: 'دور الـ 16', round: 5, start: '2026-07-07T16:00:00Z' }); // 12pm ET
-  // R16-08: فائز R32-13 (م61) vs فائز R32-16 (م64)
-  fixtures.push({ teamA: 'فائز م61', teamB: 'فائز م64', stage: 'دور الـ 16', round: 5, start: '2026-07-07T20:00:00Z' }); // 4pm ET
+  // R16-07: فائز R32-15 (م63) vs فائز R32-14 (م62)
+  fixtures.push({ teamA: 'فائز م63', teamB: 'فائز م62', stage: 'دور الـ 16', round: 5, start: '2026-07-07T16:00:00Z' }); // 12pm ET
+  // R16-08: فائز R32-13 (م61) vs فائز R32-12 (م60)
+  fixtures.push({ teamA: 'فائز م61', teamB: 'فائز م60', stage: 'دور الـ 16', round: 5, start: '2026-07-07T20:00:00Z' }); // 4pm ET
 
   // ============================
   // ربع النهائي (Round 6) — 4 مباريات

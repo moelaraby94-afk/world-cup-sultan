@@ -1159,11 +1159,11 @@ db.init()
 
     // Migration: إعادة ربط مسارات الأدوار الإقصائية بالترتيب الصحيح
     try {
-      const relinkCheck = await db.pool.query("SELECT value FROM settings WHERE key = 'bracket_paths_v2_relinked'");
+      const relinkCheck = await db.pool.query("SELECT value FROM settings WHERE key = 'bracket_paths_v3_relinked'");
       if (relinkCheck.rows.length === 0) {
-        console.log('Migration: relinking bracket paths (v2)...');
+        console.log('Migration: relinking bracket paths (v3)...');
         await db.relinkBracketPaths();
-        await db.pool.query("INSERT INTO settings (key, value) VALUES ('bracket_paths_v2_relinked', '1') ON CONFLICT (key) DO UPDATE SET value = '1'");
+        await db.pool.query("INSERT INTO settings (key, value) VALUES ('bracket_paths_v3_relinked', '1') ON CONFLICT (key) DO UPDATE SET value = '1'");
         console.log('Migration: bracket paths relinked. Resetting R16+ teams to placeholders...');
         await db.resetKnockoutTeamsFromRound(5);
         console.log('Migration: teams reset. Re-advancing winners with correct paths...');
