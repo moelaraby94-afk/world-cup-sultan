@@ -1118,6 +1118,20 @@ app.get('/admin/verify-bracket', requireAuth, requireAdmin, async (req, res) => 
   }
 });
 
+// إعادة ربط مسارات الأدوار الإقصائية (آمن — لا يمس النتائج أو التوقعات)
+app.post('/admin/relink-bracket', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await db.relinkBracketPaths();
+    await db.resetKnockoutTeamsFromRound(5);
+    await db.advanceKnockoutTeams();
+    await db.recalculateAllPredictionPoints();
+    res.redirect('/dashboard?tab=seeding');
+  } catch (err) {
+    console.error('Relink bracket error:', err.message);
+    res.redirect('/dashboard?tab=seeding');
+  }
+});
+
 // ===== 404 Handler =====
 app.use((req, res) => {
   res.status(404).render('error', { message: 'الصفحة غير موجودة' });
@@ -1142,6 +1156,25 @@ db.init()
     await db.initNewsTable();
     await db.initNewsCommentsTable();
     await db.initNewsReadsTable();
+
+    // Migration: إعادة ربط مسارات الأدوار الإقصائية بالترتيب الصحيح
+    try {
+      const relinkCheck = await db.pool.query("SELECT value FROM settings WHERE key = 'bracket_paths_v2_relinked'");
+      if (relinkCheck.rows.length === 0) {
+        console.log('Migration: relinking bracket paths (v2)...');
+        await db.relinkBracketPaths();
+        await db.pool.query("INSERT INTO settings (key, value) VALUES ('bracket_paths_v2_relinked', '1') ON CONFLICT (key) DO UPDATE SET value = '1'");
+        console.log('Migration: bracket paths relinked. Resetting R16+ teams to placeholders...');
+        await db.resetKnockoutTeamsFromRound(5);
+        console.log('Migration: teams reset. Re-advancing winners with correct paths...');
+        await db.advanceKnockoutTeams();
+        await db.recalculateAllPredictionPoints();
+        console.log('Migration: winners re-advanced and points recalculated.');
+      }
+    } catch (migrateErr) {
+      console.error('Migration relink error (non-fatal):', migrateErr.message);
+    }
+
     server = app.listen(PORT, () => {
       console.log(`✓ Server running on http://localhost:${PORT}`);
     });

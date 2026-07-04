@@ -38,53 +38,53 @@ const GROUPS = {
 // مسارات الفائزين حسب الجدول الرسمي للبطولة
 const BRACKET_SLOTS = {
   round4: [ // دور الـ 32 — 16 مباراة
-    // M49 / FIFA M73: ثاني A vs ثاني B → R16-02 teamA
-    { label: 'R32-01', teamA: { type: 'group_second', group: 'A' }, teamB: { type: 'group_second', group: 'B' }, winnerTo: 'R16-02', side: 'teamA' },
+    // M49 / FIFA M73: ثاني A vs ثاني B → R16-01 teamA
+    { label: 'R32-01', teamA: { type: 'group_second', group: 'A' }, teamB: { type: 'group_second', group: 'B' }, winnerTo: 'R16-01', side: 'teamA' },
     // M50 / FIFA M76: أول C vs ثاني F → R16-03 teamA
     { label: 'R32-02', teamA: { type: 'group_first', group: 'C' }, teamB: { type: 'group_second', group: 'F' }, winnerTo: 'R16-03', side: 'teamA' },
-    // M51 / FIFA M74: أول E vs BestThird → R16-01 teamA
-    { label: 'R32-03', teamA: { type: 'group_first', group: 'E' }, teamB: { type: 'best_third', index: 1 }, winnerTo: 'R16-01', side: 'teamA' },
-    // M52 / FIFA M75: أول F vs ثاني C → R16-02 teamB
-    { label: 'R32-04', teamA: { type: 'group_first', group: 'F' }, teamB: { type: 'group_second', group: 'C' }, winnerTo: 'R16-02', side: 'teamB' },
+    // M51 / FIFA M74: أول E vs BestThird → R16-02 teamA
+    { label: 'R32-03', teamA: { type: 'group_first', group: 'E' }, teamB: { type: 'best_third', index: 1 }, winnerTo: 'R16-02', side: 'teamA' },
+    // M52 / FIFA M75: أول F vs ثاني C → R16-01 teamB
+    { label: 'R32-04', teamA: { type: 'group_first', group: 'F' }, teamB: { type: 'group_second', group: 'C' }, winnerTo: 'R16-01', side: 'teamB' },
     // M53 / FIFA M78: ثاني E vs ثاني I → R16-03 teamB
     { label: 'R32-05', teamA: { type: 'group_second', group: 'E' }, teamB: { type: 'group_second', group: 'I' }, winnerTo: 'R16-03', side: 'teamB' },
-    // M54 / FIFA M77: أول I vs BestThird → R16-01 teamB
-    { label: 'R32-06', teamA: { type: 'group_first', group: 'I' }, teamB: { type: 'best_third', index: 2 }, winnerTo: 'R16-01', side: 'teamB' },
+    // M54 / FIFA M77: أول I vs BestThird → R16-02 teamB
+    { label: 'R32-06', teamA: { type: 'group_first', group: 'I' }, teamB: { type: 'best_third', index: 2 }, winnerTo: 'R16-02', side: 'teamB' },
     // M55 / FIFA M79: أول A vs BestThird → R16-04 teamA
     { label: 'R32-07', teamA: { type: 'group_first', group: 'A' }, teamB: { type: 'best_third', index: 3 }, winnerTo: 'R16-04', side: 'teamA' },
     // M56 / FIFA M80: أول L vs BestThird → R16-04 teamB
     { label: 'R32-08', teamA: { type: 'group_first', group: 'L' }, teamB: { type: 'best_third', index: 4 }, winnerTo: 'R16-04', side: 'teamB' },
-    // M57 / FIFA M82: أول G vs BestThird → R16-06 teamB
-    { label: 'R32-09', teamA: { type: 'group_first', group: 'G' }, teamB: { type: 'best_third', index: 5 }, winnerTo: 'R16-06', side: 'teamB' },
-    // M58 / FIFA M81: أول D vs BestThird → R16-06 teamA
-    { label: 'R32-10', teamA: { type: 'group_first', group: 'D' }, teamB: { type: 'best_third', index: 6 }, winnerTo: 'R16-06', side: 'teamA' },
-    // M59 / FIFA M84: أول H vs ثاني J → R16-05 teamB
-    { label: 'R32-11', teamA: { type: 'group_first', group: 'H' }, teamB: { type: 'group_second', group: 'J' }, winnerTo: 'R16-05', side: 'teamB' },
-    // M60 / FIFA M83: ثاني K vs ثاني L → R16-05 teamA
-    { label: 'R32-12', teamA: { type: 'group_second', group: 'K' }, teamB: { type: 'group_second', group: 'L' }, winnerTo: 'R16-05', side: 'teamA' },
+    // M57 / FIFA M82: أول G vs BestThird → R16-06 teamA
+    { label: 'R32-09', teamA: { type: 'group_first', group: 'G' }, teamB: { type: 'best_third', index: 5 }, winnerTo: 'R16-06', side: 'teamA' },
+    // M58 / FIFA M81: أول D vs BestThird → R16-06 teamB
+    { label: 'R32-10', teamA: { type: 'group_first', group: 'D' }, teamB: { type: 'best_third', index: 6 }, winnerTo: 'R16-06', side: 'teamB' },
+    // M59 / FIFA M84: أول H vs ثاني J → R16-05 teamA
+    { label: 'R32-11', teamA: { type: 'group_first', group: 'H' }, teamB: { type: 'group_second', group: 'J' }, winnerTo: 'R16-05', side: 'teamA' },
+    // M60 / FIFA M83: ثاني K vs ثاني L → R16-05 teamB
+    { label: 'R32-12', teamA: { type: 'group_second', group: 'K' }, teamB: { type: 'group_second', group: 'L' }, winnerTo: 'R16-05', side: 'teamB' },
     // M61 / FIFA M85: أول B vs BestThird → R16-08 teamA
     { label: 'R32-13', teamA: { type: 'group_first', group: 'B' }, teamB: { type: 'best_third', index: 7 }, winnerTo: 'R16-08', side: 'teamA' },
-    // M62 / FIFA M88: ثاني D vs ثاني G → R16-07 teamB
-    { label: 'R32-14', teamA: { type: 'group_second', group: 'D' }, teamB: { type: 'group_second', group: 'G' }, winnerTo: 'R16-07', side: 'teamB' },
-    // M63 / FIFA M86: أول J vs ثاني H → R16-07 teamA
-    { label: 'R32-15', teamA: { type: 'group_first', group: 'J' }, teamB: { type: 'group_second', group: 'H' }, winnerTo: 'R16-07', side: 'teamA' },
+    // M62 / FIFA M88: ثاني D vs ثاني G → R16-07 teamA
+    { label: 'R32-14', teamA: { type: 'group_second', group: 'D' }, teamB: { type: 'group_second', group: 'G' }, winnerTo: 'R16-07', side: 'teamA' },
+    // M63 / FIFA M86: أول J vs ثاني H → R16-07 teamB
+    { label: 'R32-15', teamA: { type: 'group_first', group: 'J' }, teamB: { type: 'group_second', group: 'H' }, winnerTo: 'R16-07', side: 'teamB' },
     // M64 / FIFA M87: أول K vs BestThird → R16-08 teamB
     { label: 'R32-16', teamA: { type: 'group_first', group: 'K' }, teamB: { type: 'best_third', index: 8 }, winnerTo: 'R16-08', side: 'teamB' },
   ],
   round5: [ // دور الـ 16 — حسب ترتيب المباريات في generateFixtures
-    // M65 / FIFA M89: فائز R32-03 vs فائز R32-06 → QF-01 teamA
+    // M65 / FIFA M89: فائز R32-01 vs فائز R32-04 → QF-01 teamA
     { label: 'R16-01', winnerTo: 'QF-01', side: 'teamA' },
-    // M66 / FIFA M90: فائز R32-01 vs فائز R32-04 → QF-01 teamB
+    // M66 / FIFA M90: فائز R32-03 vs فائز R32-06 → QF-01 teamB
     { label: 'R16-02', winnerTo: 'QF-01', side: 'teamB' },
     // M67 / FIFA M91: فائز R32-02 vs فائز R32-05 → QF-03 teamA
     { label: 'R16-03', winnerTo: 'QF-03', side: 'teamA' },
     // M68 / FIFA M92: فائز R32-07 vs فائز R32-08 → QF-03 teamB
     { label: 'R16-04', winnerTo: 'QF-03', side: 'teamB' },
-    // M69 / FIFA M93: فائز R32-12 vs فائز R32-11 → QF-02 teamA
+    // M69 / FIFA M93: فائز R32-11 vs فائز R32-12 → QF-02 teamA
     { label: 'R16-05', winnerTo: 'QF-02', side: 'teamA' },
-    // M70 / FIFA M94: فائز R32-10 vs فائز R32-09 → QF-02 teamB
+    // M70 / FIFA M94: فائز R32-09 vs فائز R32-10 → QF-02 teamB
     { label: 'R16-06', winnerTo: 'QF-02', side: 'teamB' },
-    // M71 / FIFA M95: فائز R32-15 vs فائز R32-14 → QF-04 teamA
+    // M71 / FIFA M95: فائز R32-14 vs فائز R32-15 → QF-04 teamA
     { label: 'R16-07', winnerTo: 'QF-04', side: 'teamA' },
     // M72 / FIFA M96: فائز R32-13 vs فائز R32-16 → QF-04 teamB
     { label: 'R16-08', winnerTo: 'QF-04', side: 'teamB' },
@@ -271,27 +271,39 @@ function generateFixtures() {
   // ============================
 
   // يوم 4 يوليو (السبت)
-  fixtures.push({ teamA: 'فائز م49', teamB: 'فائز م50', stage: 'دور الـ 16', round: 5, start: '2026-07-04T17:00:00Z' }); // 1pm ET
-  fixtures.push({ teamA: 'فائز م53', teamB: 'فائز م54', stage: 'دور الـ 16', round: 5, start: '2026-07-04T21:00:00Z' }); // 5pm ET
+  // R16-01: فائز R32-01 (م49) vs فائز R32-04 (م52)
+  fixtures.push({ teamA: 'فائز م49', teamB: 'فائز م52', stage: 'دور الـ 16', round: 5, start: '2026-07-04T17:00:00Z' }); // 1pm ET
+  // R16-02: فائز R32-03 (م51) vs فائز R32-06 (م54)
+  fixtures.push({ teamA: 'فائز م51', teamB: 'فائز م54', stage: 'دور الـ 16', round: 5, start: '2026-07-04T21:00:00Z' }); // 5pm ET
 
   // يوم 5 يوليو (الأحد)
-  fixtures.push({ teamA: 'فائز م51', teamB: 'فائز م52', stage: 'دور الـ 16', round: 5, start: '2026-07-05T20:00:00Z' }); // 4pm ET
+  // R16-03: فائز R32-02 (م50) vs فائز R32-05 (م53)
+  fixtures.push({ teamA: 'فائز م50', teamB: 'فائز م53', stage: 'دور الـ 16', round: 5, start: '2026-07-05T20:00:00Z' }); // 4pm ET
+  // R16-04: فائز R32-07 (م55) vs فائز R32-08 (م56)
   fixtures.push({ teamA: 'فائز م55', teamB: 'فائز م56', stage: 'دور الـ 16', round: 5, start: '2026-07-06T00:00:00Z' }); // 8pm ET
 
   // يوم 6 يوليو (الإثنين)
-  fixtures.push({ teamA: 'فائز م57', teamB: 'فائز م58', stage: 'دور الـ 16', round: 5, start: '2026-07-06T19:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'فائز م59', teamB: 'فائز م60', stage: 'دور الـ 16', round: 5, start: '2026-07-06T21:00:00Z' }); // 5pm ET
+  // R16-05: فائز R32-11 (م59) vs فائز R32-12 (م60)
+  fixtures.push({ teamA: 'فائز م59', teamB: 'فائز م60', stage: 'دور الـ 16', round: 5, start: '2026-07-06T19:00:00Z' }); // 3pm ET
+  // R16-06: فائز R32-09 (م57) vs فائز R32-10 (م58)
+  fixtures.push({ teamA: 'فائز م57', teamB: 'فائز م58', stage: 'دور الـ 16', round: 5, start: '2026-07-06T21:00:00Z' }); // 5pm ET
 
   // يوم 7 يوليو (الثلاثاء)
-  fixtures.push({ teamA: 'فائز م61', teamB: 'فائز م62', stage: 'دور الـ 16', round: 5, start: '2026-07-07T16:00:00Z' }); // 12pm ET
-  fixtures.push({ teamA: 'فائز م63', teamB: 'فائز م64', stage: 'دور الـ 16', round: 5, start: '2026-07-07T20:00:00Z' }); // 4pm ET
+  // R16-07: فائز R32-14 (م62) vs فائز R32-15 (م63)
+  fixtures.push({ teamA: 'فائز م62', teamB: 'فائز م63', stage: 'دور الـ 16', round: 5, start: '2026-07-07T16:00:00Z' }); // 12pm ET
+  // R16-08: فائز R32-13 (م61) vs فائز R32-16 (م64)
+  fixtures.push({ teamA: 'فائز م61', teamB: 'فائز م64', stage: 'دور الـ 16', round: 5, start: '2026-07-07T20:00:00Z' }); // 4pm ET
 
   // ============================
   // ربع النهائي (Round 6) — 4 مباريات
   // ============================
+  // QF-01: فائز R16-01 vs فائز R16-02
   fixtures.push({ teamA: 'فائز ثمن 1', teamB: 'فائز ثمن 2', stage: 'ربع النهائي', round: 6, start: '2026-07-09T20:00:00Z' }); // 4pm ET
-  fixtures.push({ teamA: 'فائز ثمن 3', teamB: 'فائز ثمن 4', stage: 'ربع النهائي', round: 6, start: '2026-07-10T19:00:00Z' }); // 3pm ET
-  fixtures.push({ teamA: 'فائز ثمن 5', teamB: 'فائز ثمن 6', stage: 'ربع النهائي', round: 6, start: '2026-07-11T21:00:00Z' }); // 5pm ET
+  // QF-02: فائز R16-05 vs فائز R16-06
+  fixtures.push({ teamA: 'فائز ثمن 5', teamB: 'فائز ثمن 6', stage: 'ربع النهائي', round: 6, start: '2026-07-10T19:00:00Z' }); // 3pm ET
+  // QF-03: فائز R16-03 vs فائز R16-04
+  fixtures.push({ teamA: 'فائز ثمن 3', teamB: 'فائز ثمن 4', stage: 'ربع النهائي', round: 6, start: '2026-07-11T21:00:00Z' }); // 5pm ET
+  // QF-04: فائز R16-07 vs فائز R16-08
   fixtures.push({ teamA: 'فائز ثمن 7', teamB: 'فائز ثمن 8', stage: 'ربع النهائي', round: 6, start: '2026-07-12T01:00:00Z' }); // 9pm ET
 
   // ============================
@@ -1369,6 +1381,8 @@ module.exports = {
   recalculateAllPredictionPoints,
   // Bracket system
   initBracketPaths,
+  relinkBracketPaths,
+  resetKnockoutTeamsFromRound,
   getBestThirds,
   getRound32Seeding,
   saveRound32Seeding,
@@ -1944,6 +1958,108 @@ async function initBracketPaths() {
       }
     }
   }
+}
+
+// ===== إعادة ربط مسارات الأدوار الإقصائية (migration آمن) =====
+// تحدّث winner_to_match_id و winner_to_side في جدول matches
+// و تحدّث knockout_bracket_slots
+// لا تمس teamA/teamB/actual_score/penalty_winner أو أي بيانات أخرى
+async function relinkBracketPaths() {
+  // 1. تحديث knockout_bracket_slots (ON CONFLICT DO UPDATE)
+  for (let r = 4; r <= 8; r++) {
+    const slots = BRACKET_SLOTS['round' + r];
+    const stageMap = { 4: 'دور الـ 32', 5: 'دور الـ 16', 6: 'ربع النهائي', 7: 'نصف النهائي', 8: 'النهائي' };
+    for (let i = 0; i < slots.length; i++) {
+      const s = slots[i];
+      const teamA_type = s.teamA ? s.teamA.type : '';
+      const teamA_val = s.teamA ? (s.teamA.group || s.teamA.index || '') : '';
+      const teamB_type = s.teamB ? s.teamB.type : '';
+      const teamB_val = s.teamB ? (s.teamB.group || s.teamB.index || '') : '';
+      await pool.query(
+        `INSERT INTO knockout_bracket_slots (match_label, round, stage, match_order,
+          teamA_slot_type, teamA_slot_value, teamB_slot_type, teamB_slot_value,
+          winner_to_match_label, winner_to_side)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+         ON CONFLICT (match_label) DO UPDATE SET
+          winner_to_match_label = EXCLUDED.winner_to_match_label,
+          winner_to_side = EXCLUDED.winner_to_side,
+          teamA_slot_type = EXCLUDED.teamA_slot_type,
+          teamA_slot_value = EXCLUDED.teamA_slot_value,
+          teamB_slot_type = EXCLUDED.teamB_slot_type,
+          teamB_slot_value = EXCLUDED.teamB_slot_value`,
+        [s.label, r, stageMap[r], i + 1,
+         teamA_type, String(teamA_val), teamB_type, String(teamB_val),
+         s.winnerTo || null, s.side || null]
+      );
+    }
+  }
+
+  // 2. التأكد من تعيين match_label لكل مباراة (لو لم تعيّن من قبل)
+  for (let r = 4; r <= 8; r++) {
+    const matches = await pool.query(
+      'SELECT * FROM matches WHERE round = $1 ORDER BY id', [r]
+    );
+    const slots = BRACKET_SLOTS['round' + r];
+    for (let i = 0; i < matches.rows.length && i < slots.length; i++) {
+      const m = matches.rows[i];
+      const s = slots[i];
+      if (!m.match_label) {
+        await pool.query('UPDATE matches SET match_label = $1 WHERE id = $2', [s.label, m.id]);
+      }
+    }
+  }
+
+  // 3. إعادة ربط winner_to_match_id و winner_to_side (تحديث القيم الموجودة)
+  for (let r = 4; r <= 8; r++) {
+    const matches = await pool.query(
+      'SELECT * FROM matches WHERE round = $1 ORDER BY id', [r]
+    );
+    const slots = BRACKET_SLOTS['round' + r];
+    for (let i = 0; i < matches.rows.length && i < slots.length; i++) {
+      const m = matches.rows[i];
+      const s = slots[i];
+      if (s.winnerTo) {
+        const nextMatch = await pool.query(
+          'SELECT id FROM matches WHERE match_label = $1 LIMIT 1', [s.winnerTo]
+        );
+        if (nextMatch.rows.length > 0) {
+          await pool.query(
+            'UPDATE matches SET winner_to_match_id = $1, winner_to_side = $2 WHERE id = $3',
+            [nextMatch.rows[0].id, s.side, m.id]
+          );
+        }
+      } else {
+        // النهائي — لا يوجد winnerTo
+        await pool.query(
+          'UPDATE matches SET winner_to_match_id = NULL, winner_to_side = NULL WHERE id = $1',
+          [m.id]
+        );
+      }
+    }
+  }
+
+  invalidateMatchesCache();
+  console.log('Bracket paths relinked successfully (v2)');
+}
+
+// إعادة تعيين فرق الأدوار الإقصائية لـ placeholders (آمن — لا يمس النتائج أو التوقعات)
+// يحدّث teamA/teamB فقط للمباريات اللي مالهاش نتائج (actual_scoreA IS NULL)
+async function resetKnockoutTeamsFromRound(fromRound) {
+  const fixtures = generateFixtures();
+  const koFixtures = fixtures.filter(f => f.round >= fromRound);
+  const existing = await pool.query(
+    'SELECT id, round FROM matches WHERE round >= $1 ORDER BY id', [fromRound]
+  );
+  for (let i = 0; i < koFixtures.length && i < existing.rows.length; i++) {
+    const f = koFixtures[i];
+    const m = existing.rows[i];
+    await pool.query(
+      'UPDATE matches SET teamA = $1, teamB = $2 WHERE id = $3 AND actual_scoreA IS NULL AND actual_scoreB IS NULL',
+      [f.teamA, f.teamB, m.id]
+    );
+  }
+  invalidateMatchesCache();
+  console.log('Knockout teams reset from round', fromRound);
 }
 
 // حساب أفضل 8 ثوالث
