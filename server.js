@@ -1175,6 +1175,36 @@ db.init()
       console.error('Migration relink error (non-fatal):', migrateErr.message);
     }
 
+    // ===== Auto-publish next round when current round is fully locked =====
+    async function autoPublishNextRound() {
+      try {
+        const publishedRounds = await db.getPublishedRounds();
+        if (publishedRounds.length === 0) return;
+        const lastPublished = Math.max(...publishedRounds);
+        if (lastPublished >= 8) return;
+
+        const allMatches = await db.getMatches();
+        const lastRoundMatches = allMatches.filter(m => m.round === lastPublished);
+        if (lastRoundMatches.length === 0) return;
+
+        const allLocked = lastRoundMatches.every(m => isPredictionLocked(m.start_at));
+        if (!allLocked) return;
+
+        const nextRound = lastPublished + 1;
+        if (publishedRounds.includes(nextRound)) return;
+
+        const nextRoundMatches = allMatches.filter(m => m.round === nextRound);
+        if (nextRoundMatches.length === 0) return;
+
+        console.log(`Auto-publishing round ${nextRound} (round ${lastPublished} fully locked)`);
+        await db.publishRound(nextRound);
+      } catch (err) {
+        console.error('Auto-publish error:', err.message || err);
+      }
+    }
+
+    setInterval(autoPublishNextRound, 60 * 1000);
+
     server = app.listen(PORT, () => {
       console.log(`✓ Server running on http://localhost:${PORT}`);
     });
