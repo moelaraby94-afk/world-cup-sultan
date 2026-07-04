@@ -2039,7 +2039,7 @@ async function relinkBracketPaths() {
   }
 
   invalidateMatchesCache();
-  console.log('Bracket paths relinked successfully (v2)');
+  console.log('Bracket paths relinked successfully (v3)');
 }
 
 // إعادة تعيين فرق الأدوار الإقصائية لـ placeholders (آمن — لا يمس النتائج أو التوقعات)
