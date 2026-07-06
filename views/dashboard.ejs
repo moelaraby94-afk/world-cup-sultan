@@ -589,6 +589,19 @@
                       <button type="button" class="btn-clear" onclick="clearResult('<%= match.id %>')" title="مسح النتيجة">مسح</button>
                       <% } %>
                     </form>
+                    <form method="POST" action="/admin/match/<%= match.id %>/lock-override" style="margin-top:6px;display:flex;align-items:center;gap:6px;">
+                      <span style="font-size:0.72rem;color:var(--text-secondary);">التوقع:</span>
+                      <select name="mode" onchange="this.form.submit()" style="padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.72rem;">
+                        <option value="auto" <%= !match.lock_override ? 'selected' : '' %>>تلقائي (10 د قبل الماتش)</option>
+                        <option value="open" <%= match.lock_override === 'open' ? 'selected' : '' %>>مفتوح إجباريًا</option>
+                        <option value="closed" <%= match.lock_override === 'closed' ? 'selected' : '' %>>مغلق إجباريًا</option>
+                      </select>
+                      <% if (match.lock_override) { %>
+                      <span style="font-size:0.72rem;font-weight:700;color:<%= match.lock_override==='open'?'#22c55e':'#ef4444' %>;">
+                        <%= match.lock_override === 'open' ? '● مفتوح يدويًا' : '● مغلق يدويًا' %>
+                      </span>
+                      <% } %>
+                    </form>
                   </div>
                   <% }) %>
                 <% } %>

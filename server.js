@@ -158,7 +158,9 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-function isPredictionLocked(matchStart) {
+function isPredictionLocked(matchStart, lockOverride) {
+  if (lockOverride === 'open') return false;
+  if (lockOverride === 'closed') return true;
   if (!matchStart) return true;
   const start = new Date(matchStart);
   const lockTime = new Date(start.getTime() - 10 * 60 * 1000);
@@ -272,19 +274,19 @@ app.get('/home', requireAuth, async (req, res) => {
     const predictionsWithLock = matches.map(match => ({
       match,
       prediction: userPredMap.get(match.id) || null,
-      locked: isPredictionLocked(match.start_at)
+      locked: isPredictionLocked(match.start_at, match.lock_override)
     }));
     const upcomingMatches = matches
       .filter(match => new Date(match.start_at) > Date.now())
       .slice(0, 5)
-      .map(match => ({ ...match, locked: isPredictionLocked(match.start_at) }));
+      .map(match => ({ ...match, locked: isPredictionLocked(match.start_at, match.lock_override) }));
     const predictionsCount = userPredictions.length;
     const correctPredictions = userPredictions.filter(p =>
       p.actual_scoreA != null && p.actual_scoreB != null &&
       db.calculatePoints(p.scoreA, p.scoreB, p.actual_scoreA, p.actual_scoreB, p.round, p.penalty_winner, p.actual_penalty_winner) >= 20
     ).length;
     const lockedMatchesForUser = matches.filter(m =>
-      publishedRounds.includes(m.round) && isPredictionLocked(m.start_at) && m.id >= db.MISSED_PREDICTIONS_START_MATCH_ID
+      publishedRounds.includes(m.round) && isPredictionLocked(m.start_at, m.lock_override) && m.id >= db.MISSED_PREDICTIONS_START_MATCH_ID
     );
     const lockedWithoutPrediction = lockedMatchesForUser.filter(m =>
       !userPredictions.some(p => p.match_id === m.id)
@@ -349,7 +351,7 @@ app.get('/schedule', requireAuth, async (req, res) => {
   try {
     if (req.user.status !== 'approved') return res.redirect('/pending');
     const allMatches = await db.getMatches();
-    const matches = allMatches.map(match => ({ ...match, locked: isPredictionLocked(match.start_at) }));
+    const matches = allMatches.map(match => ({ ...match, locked: isPredictionLocked(match.start_at, match.lock_override) }));
     const leaderboard = await db.getLeaderboard();
     const userPredictions = await db.getUserPredictions(req.user.id);
     const allMatchesCount = allMatches.length;
@@ -423,7 +425,7 @@ app.get('/predictions', requireAuth, async (req, res) => {
     const predictions = roundMatches.map(match => ({
       match,
       prediction: userPredMap.get(match.id) || null,
-      locked: isPredictionLocked(match.start_at)
+      locked: isPredictionLocked(match.start_at, match.lock_override)
     }));
     const leaderboard = await db.getLeaderboard();
     const allMatchesCount = allMatches.length;
@@ -438,7 +440,7 @@ app.get('/predictions', requireAuth, async (req, res) => {
     var lockedMatches = [];
     try {
       lockedMatches = allMatches.filter(function(m) {
-        return publishedRounds.includes(m.round) && isPredictionLocked(m.start_at) && m.id >= db.MISSED_PREDICTIONS_START_MATCH_ID;
+        return publishedRounds.includes(m.round) && isPredictionLocked(m.start_at, m.lock_override) && m.id >= db.MISSED_PREDICTIONS_START_MATCH_ID;
       });
       lockedMatches.forEach(function(lm) {
         var hasPred = userPredictions.some(function(p) { return p.match_id === lm.id; });
@@ -465,7 +467,7 @@ app.post('/predictions', requireAuth, async (req, res) => {
     if (Number.isNaN(matchIdInt)) return res.redirect('/predictions');
     const match = await db.getMatchById(matchIdInt);
     if (!match) return res.redirect('/predictions');
-    if (isPredictionLocked(match.start_at)) {
+    if (isPredictionLocked(match.start_at, match.lock_override)) {
       return res.redirect('/predictions');
     }
     const a = parseInt(scoreA, 10);
@@ -498,9 +500,7 @@ app.get('/players-predictions', requireAuth, async (req, res) => {
     const hiddenIds = await db.getHiddenPredictions();
 
     const visibleMatches = allMatches.filter(m => {
-      const start = new Date(m.start_at);
-      const lockTime = new Date(start.getTime() - 10 * 60 * 1000);
-      const deadlinePassed = Date.now() >= lockTime.getTime();
+      const deadlinePassed = isPredictionLocked(m.start_at, m.lock_override);
       const isManuallyVisible = manuallyVisibleIds.includes(m.id);
       const isManuallyHidden = hiddenIds.includes(m.id);
       return (deadlinePassed && !isManuallyHidden) || isManuallyVisible;
@@ -870,7 +870,7 @@ app.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
     var leaderboardWithMissed = leaderboard;
     try {
       var lockedPublishedMatches = matches.filter(function(m) {
-        return publishedRounds.includes(m.round) && isPredictionLocked(m.start_at) && m.id >= db.MISSED_PREDICTIONS_START_MATCH_ID;
+        return publishedRounds.includes(m.round) && isPredictionLocked(m.start_at, m.lock_override) && m.id >= db.MISSED_PREDICTIONS_START_MATCH_ID;
       });
       leaderboardWithMissed = leaderboard.map(function(entry) {
         var lockedPredCount = 0;
@@ -978,6 +978,22 @@ app.post('/matches/:id/result', requireAuth, requireAdmin, async (req, res) => {
     res.redirect('/dashboard?tab=results');
   } catch (err) {
     console.error('Update result error:', err);
+    res.redirect('/dashboard?tab=results');
+  }
+});
+
+// تحكم يدوي في قفل/فتح التوقع لمباراة (بغض النظر عن قاعدة الـ10 دقائق التلقائية)
+app.post('/admin/match/:id/lock-override', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
+  try {
+    const matchIdInt = parseInt(req.params.id, 10);
+    const mode = req.body.mode;
+    if (Number.isNaN(matchIdInt) || !['open', 'closed', 'auto'].includes(mode)) {
+      return res.redirect('/dashboard?tab=results');
+    }
+    await db.setMatchLockOverride(matchIdInt, mode);
+    res.redirect('/dashboard?tab=results');
+  } catch (err) {
+    console.error('Lock override error:', err);
     res.redirect('/dashboard?tab=results');
   }
 });
@@ -1203,7 +1219,7 @@ db.init()
         const lastRoundMatches = allMatches.filter(m => m.round === lastPublished);
         if (lastRoundMatches.length === 0) return;
 
-        const allLocked = lastRoundMatches.every(m => isPredictionLocked(m.start_at));
+        const allLocked = lastRoundMatches.every(m => isPredictionLocked(m.start_at, m.lock_override));
         if (!allLocked) return;
 
         const nextRound = lastPublished + 1;

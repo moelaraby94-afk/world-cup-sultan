@@ -390,6 +390,9 @@ async function init() {
     await client.query("ALTER TABLE matches ADD COLUMN IF NOT EXISTS winner_to_match_id INTEGER REFERENCES matches(id)");
     await client.query("ALTER TABLE matches ADD COLUMN IF NOT EXISTS winner_to_side VARCHAR(10)");
 
+    // Safe migration: manual override للقفل التلقائي للتوقعات ('open' | 'closed' | NULL=تلقائي)
+    await client.query("ALTER TABLE matches ADD COLUMN IF NOT EXISTS lock_override VARCHAR(10)");
+
     // Knockout bracket slots table — الثابت الرسمي
     await client.query(`
       CREATE TABLE IF NOT EXISTS knockout_bracket_slots (
@@ -837,6 +840,16 @@ async function updateMatchResult(matchId, scoreA, scoreB, actualWinner, penaltyW
   }
 }
 
+// تحكم الأدمن اليدوي في قفل/فتح التوقع لمباراة معينة، بغض النظر عن قاعدة الـ10 دقائق التلقائية
+// mode: 'open' (فتح إجباري) | 'closed' (قفل إجباري) | 'auto' (رجوع للقاعدة التلقائية)
+async function setMatchLockOverride(matchId, mode) {
+  const valid = ['open', 'closed', 'auto'];
+  if (!valid.includes(mode)) throw new Error('قيمة غير صالحة لحالة القفل');
+  const value = mode === 'auto' ? null : mode;
+  await pool.query('UPDATE matches SET lock_override = $1 WHERE id = $2', [value, matchId]);
+  invalidateMatchesCache();
+}
+
 async function getLeaderboard() {
   const result = await pool.query(`
     SELECT u.id, u.name, u.username,
@@ -1160,7 +1173,8 @@ function normalizeMatch(row) {
     penalty_winner: row.penalty_winner || row.penaltywinner || null,
     match_label: row.match_label || null,
     winner_to_match_id: row.winner_to_match_id || null,
-    winner_to_side: row.winner_to_side || null
+    winner_to_side: row.winner_to_side || null,
+    lock_override: row.lock_override || null
   };
 }
 
@@ -1337,6 +1351,7 @@ module.exports = {
   getLastPrediction,
   updateKnockoutTeams,
   updateMatchResult,
+  setMatchLockOverride,
   getLeaderboard,
   getLeaderboardStats,
   updateManualPoints,
