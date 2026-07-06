@@ -1175,6 +1175,22 @@ db.init()
       console.error('Migration relink error (non-fatal):', migrateErr.message);
     }
 
+    // Migration: تصحيح مواعيد R16-05 (أمريكا/بلجيكا) و R16-06 (إسبانيا/البرتغال) — كانت مقلوبة
+    // الصحيح: R16-06 يُلعب الساعة 19:00 UTC، R16-05 يُلعب بعده الساعة 00:00 UTC (اليوم التالي)
+    try {
+      const r16TimeCheck = await db.pool.query("SELECT value FROM settings WHERE key = 'r16_kickoff_time_fix_v1'");
+      if (r16TimeCheck.rows.length === 0) {
+        console.log('Migration: fixing R16-05/R16-06 kickoff times...');
+        await db.pool.query("UPDATE matches SET start_at = '2026-07-06T19:00:00Z' WHERE match_label = 'R16-06'");
+        await db.pool.query("UPDATE matches SET start_at = '2026-07-07T00:00:00Z' WHERE match_label = 'R16-05'");
+        await db.pool.query("INSERT INTO settings (key, value) VALUES ('r16_kickoff_time_fix_v1', '1') ON CONFLICT (key) DO UPDATE SET value = '1'");
+        db.invalidateMatchesCache();
+        console.log('Migration: R16-05/R16-06 kickoff times fixed.');
+      }
+    } catch (timeFixErr) {
+      console.error('R16 kickoff time fix migration error (non-fatal):', timeFixErr.message);
+    }
+
     // ===== Auto-publish next round when current round is fully locked =====
     async function autoPublishNextRound() {
       try {
