@@ -18,6 +18,22 @@ const pool = new Pool({
 // نقطة البداية لاحتساب المباريات الفائتة (بعد فقدان البيانات القديمة)
 const MISSED_PREDICTIONS_START_MATCH_ID = 513; // أول مباراة في قاعدة البيانات الحالية
 
+// ===== مراحل لعبة التحدي =====
+// أرقام الأدوار في جدول matches:
+//   4 = دور الـ32   5 = دور الـ16   6 = ربع النهائي   7 = نصف النهائي   8 = النهائي
+//
+// المنتخبات المتأهلة لمرحلة ما = الفائزون في الدور الذي *قبلها*:
+//   دور الـ8 (8 منتخبات)   = فائزو دور الـ16   (round 5)
+//   دور الـ4 (4 منتخبات)   = فائزو ربع النهائي (round 6)
+//   طرفا النهائي (2)        = فائزو نصف النهائي (round 7)
+//   البطل (1)               = فائز النهائي     (round 8)
+const CHALLENGE_STAGES = [
+  { key: 'qf',        label: 'دور الـ8',      sourceRound: 5, sourceLabel: 'دور الـ16',   expectedMatches: 8, teamsCount: 8, pointsPer: 5  },
+  { key: 'sf',        label: 'دور الـ4',      sourceRound: 6, sourceLabel: 'ربع النهائي', expectedMatches: 4, teamsCount: 4, pointsPer: 10 },
+  { key: 'finalists', label: 'طرفا النهائي', sourceRound: 7, sourceLabel: 'نصف النهائي', expectedMatches: 2, teamsCount: 2, pointsPer: 15 },
+  { key: 'champion',  label: 'البطل',        sourceRound: 8, sourceLabel: 'النهائي',      expectedMatches: 1, teamsCount: 1, pointsPer: 20 }
+];
+
 const GROUPS = {
   'المجموعة A': ['المكسيك', 'جنوب أفريقيا', 'كوريا الجنوبية', 'التشيك'],
   'المجموعة B': ['كندا', 'البوسنة والهرسك', 'قطر', 'سويسرا'],
@@ -434,7 +450,32 @@ async function init() {
       )
     `);
 
+    // نقاط لعبة التحدي مخزنة لكل مرحلة على حدة.
+    // مجموع هذه الصفوف هو مصدر الحقيقة لـ users.challenge_points،
+    // ولذلك لا يمكن أن تتضاعف النقاط مهما تكرر الضغط على زر الاحتساب.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS challenge_stage_points (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        round VARCHAR(20) NOT NULL,
+        points INTEGER NOT NULL DEFAULT 0,
+        calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, round)
+      )
+    `);
+
+    // سجل المراحل التي تم احتساب نقاطها (لعرض حالة الزر ومنع التكرار)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS challenge_stage_status (
+        round VARCHAR(20) PRIMARY KEY,
+        calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        users_count INTEGER NOT NULL DEFAULT 0,
+        total_points INTEGER NOT NULL DEFAULT 0
+      )
+    `);
+
     await client.query('CREATE INDEX IF NOT EXISTS idx_challenge_picks_user_id ON challenge_picks(user_id)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_challenge_stage_points_user_id ON challenge_stage_points(user_id)');
 
     await client.query('CREATE INDEX IF NOT EXISTS idx_predictions_user_id ON predictions(user_id)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_predictions_match_id ON predictions(match_id)');
@@ -969,34 +1010,126 @@ async function getChallengeResults() {
   return result.rows;
 }
 
-async function calculateChallengePoints() {
-  const results = await pool.query('SELECT * FROM challenge_results');
-  const resultsByRound = {};
-  for (const row of results.rows) {
-    if (!resultsByRound[row.round]) resultsByRound[row.round] = [];
-    resultsByRound[row.round].push(row.team);
-  }
+// يعيد بناء users.challenge_points من مجموع نقاط المراحل المحتسبة.
+// إسناد مطلق وليس إضافة — لذلك تكرار الاستدعاء لا يضاعف النقاط أبداً.
+// لا يمس هذا الاستعلام جدول predictions ولا نقاط المباريات إطلاقاً.
+async function recomputeChallengePointsTotals(client = pool) {
+  await client.query(`
+    UPDATE users u
+    SET challenge_points = COALESCE(
+      (SELECT SUM(csp.points) FROM challenge_stage_points csp WHERE csp.user_id = u.id), 0
+    )
+  `);
+}
 
-  const picks = await pool.query('SELECT * FROM challenge_picks');
-  const pointsMap = {};
-  for (const pick of picks.rows) {
-    let points = 0;
-    if (resultsByRound['qf'] && pick.qf) {
-      points += pick.qf.filter(t => resultsByRound['qf'].includes(t)).length * 5;
+// احتساب نقاط مرحلة واحدة. آمن للتكرار: يستخدم UPSERT ثم يعيد بناء المجموع.
+async function calculateChallengeStagePoints(roundKey) {
+  const stage = CHALLENGE_STAGES.find(s => s.key === roundKey);
+  if (!stage) throw new Error('مرحلة غير معروفة: ' + roundKey);
+
+  const allMatches = await getMatches();
+  const qualifiers = getStageQualifiers(allMatches, stage);
+  if (!qualifiers) throw new Error('لم تكتمل هذه المرحلة بعد — لا يمكن احتساب النقاط');
+
+  const picks = await pool.query('SELECT user_id, qf, sf, finalists, champion FROM challenge_picks');
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    let usersCount = 0;
+    let totalPoints = 0;
+
+    for (const pick of picks.rows) {
+      let points = 0;
+      if (stage.key === 'champion') {
+        if (pick.champion && qualifiers.includes(pick.champion)) points = stage.pointsPer;
+      } else {
+        const picked = Array.isArray(pick[stage.key]) ? pick[stage.key] : [];
+        // إزالة التكرار حتى لا يُحتسب نفس المنتخب مرتين
+        const uniquePicked = [...new Set(picked)];
+        points = uniquePicked.filter(t => qualifiers.includes(t)).length * stage.pointsPer;
+      }
+
+      await client.query(`
+        INSERT INTO challenge_stage_points (user_id, round, points, calculated_at)
+        VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+        ON CONFLICT (user_id, round)
+        DO UPDATE SET points = EXCLUDED.points, calculated_at = CURRENT_TIMESTAMP
+      `, [pick.user_id, stage.key, points]);
+
+      usersCount++;
+      totalPoints += points;
     }
-    if (resultsByRound['sf'] && pick.sf) {
-      points += pick.sf.filter(t => resultsByRound['sf'].includes(t)).length * 10;
-    }
-    if (resultsByRound['finalists'] && pick.finalists) {
-      points += pick.finalists.filter(t => resultsByRound['finalists'].includes(t)).length * 15;
-    }
-    if (resultsByRound['champion'] && pick.champion) {
-      if (resultsByRound['champion'].includes(pick.champion)) points += 20;
-    }
-    pointsMap[pick.user_id] = points;
-    await pool.query('UPDATE users SET challenge_points = $1 WHERE id = $2', [points, pick.user_id]);
+
+    await recomputeChallengePointsTotals(client);
+
+    await client.query(`
+      INSERT INTO challenge_stage_status (round, calculated_at, users_count, total_points)
+      VALUES ($1, CURRENT_TIMESTAMP, $2, $3)
+      ON CONFLICT (round)
+      DO UPDATE SET calculated_at = CURRENT_TIMESTAMP, users_count = $2, total_points = $3
+    `, [stage.key, usersCount, totalPoints]);
+
+    await client.query('COMMIT');
+    return { round: stage.key, label: stage.label, usersCount, totalPoints, qualifiers };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
   }
-  return pointsMap;
+}
+
+// تراجع عن احتساب مرحلة (يحذف نقاطها فقط ثم يعيد بناء المجموع)
+async function resetChallengeStagePoints(roundKey) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DELETE FROM challenge_stage_points WHERE round = $1', [roundKey]);
+    await client.query('DELETE FROM challenge_stage_status WHERE round = $1', [roundKey]);
+    await recomputeChallengePointsTotals(client);
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// يعيد مزامنة كل مرحلة سبق احتسابها (بعد تعديل نتيجة مباراة مثلاً).
+// المراحل التي لم يضغط الأدمن على زرها لا تُحتسب تلقائياً.
+async function resyncCalculatedChallengeStages() {
+  const rows = await pool.query('SELECT round FROM challenge_stage_status');
+  if (rows.rows.length === 0) return;
+
+  const allMatches = await getMatches();
+  for (const row of rows.rows) {
+    const stage = CHALLENGE_STAGES.find(s => s.key === row.round);
+    if (!stage) continue;
+
+    // نتحقق من الاكتمال صراحةً. لا نحذف نقاط مرحلة بسبب خطأ عابر في قاعدة البيانات —
+    // الحذف يحدث فقط عندما تصبح المرحلة غير مكتملة فعلاً (الأدمن مسح نتيجة مباراة).
+    if (getStageQualifiers(allMatches, stage)) {
+      await calculateChallengeStagePoints(stage.key);
+    } else {
+      console.warn(`challenge stage "${stage.key}" no longer complete — clearing its points only`);
+      await resetChallengeStagePoints(stage.key);
+    }
+  }
+}
+
+// احتساب كل المراحل المكتملة دفعة واحدة (الزر القديم "احسب نقاط التحدي")
+async function calculateChallengePoints() {
+  const allMatches = await getMatches();
+  const done = [];
+  for (const stage of CHALLENGE_STAGES) {
+    if (getStageQualifiers(allMatches, stage)) {
+      done.push(await calculateChallengeStagePoints(stage.key));
+    }
+  }
+  return done;
 }
 
 async function getGroupStandings() {
@@ -1366,6 +1499,15 @@ module.exports = {
   setChallengeResults,
   getChallengeResults,
   calculateChallengePoints,
+  calculateChallengeStagePoints,
+  resetChallengeStagePoints,
+  resyncCalculatedChallengeStages,
+  recomputeChallengePointsTotals,
+  getChallengeStageState,
+  syncChallengeAfterResults,
+  CHALLENGE_STAGES,
+  getStageQualifiers,
+  getMatchWinner,
   getGroupStandings,
   calculateGroupStandings,
   calculatePoints,
@@ -1409,46 +1551,114 @@ module.exports = {
 };
 
 // ===== AUTO CHALLENGE RESULTS (استخراج المنتخبات المتأهلة تلقائياً) =====
+// تعريف المراحل CHALLENGE_STAGES موجود في أعلى الملف.
+
+// اسم منتخب حقيقي وليس اسم موضع مؤقت مثل "فائز م49" أو "أول C"
+function isRealTeamName(name) {
+  return !!(name && getTeamFlags()[name]);
+}
+
+// يرجع أسماء المنتخبات المتأهلة لهذه المرحلة، أو null لو لم تكتمل بعد.
+// المصدر الوحيد هو نتائج المباريات المعتمدة — لا يعتمد إطلاقاً على ما كتبه اللاعبون.
+function getStageQualifiers(allMatches, stage) {
+  const matches = allMatches.filter(m => m.round === stage.sourceRound);
+  if (matches.length !== stage.expectedMatches) return null;
+
+  const winners = matches.map(getMatchWinner).filter(t => isRealTeamName(t));
+  if (winners.length !== stage.expectedMatches) return null; // مباراة أو أكثر لم تُحسم
+
+  const unique = [...new Set(winners)];
+  if (unique.length !== stage.teamsCount) return null; // تكرار غير منطقي — لا تنشر نتائج مشكوك فيها
+
+  return unique;
+}
+
 async function autoCalculateChallengeResults() {
   try {
     // تأكد من تقدم الفائزين في الأدوار الإقصائية أولاً
     await advanceKnockoutTeams();
+    invalidateMatchesCache();
     const allMatches = await getMatches();
-    const results = [];
 
-    // دور الـ8 (QF) = winners of round 6
-    const qfMatches = allMatches.filter(m => m.round === 6);
-    const qfWinners = qfMatches.map(getMatchWinner).filter(Boolean);
-    for (const team of qfWinners) results.push({ round: 'qf', team });
-
-    // دور الـ4 (SF) = winners of round 7
-    const sfMatches = allMatches.filter(m => m.round === 7);
-    const sfWinners = sfMatches.map(getMatchWinner).filter(Boolean);
-    for (const team of sfWinners) results.push({ round: 'sf', team });
-
-    // طرفا النهائي = teamA + teamB of round 8
-    const finalMatches = allMatches.filter(m => m.round === 8);
-    if (finalMatches.length > 0) {
-      const fm = finalMatches[0];
-      results.push({ round: 'finalists', team: fm.teamA });
-      results.push({ round: 'finalists', team: fm.teamB });
+    const extracted = {};
+    for (const stage of CHALLENGE_STAGES) {
+      const teams = getStageQualifiers(allMatches, stage);
+      if (teams) extracted[stage.key] = teams;
     }
 
-    // البطل = winner of round 8
-    const finalWinner = finalMatches.map(getMatchWinner).filter(Boolean);
-    for (const team of finalWinner) results.push({ round: 'champion', team });
-
-    // تحديث challenge_results
-    await pool.query('DELETE FROM challenge_results');
-    for (const r of results) {
-      await pool.query('INSERT INTO challenge_results (round, team) VALUES ($1, $2)', [r.round, r.team]);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      // مرحلة مكتملة → تُكتب. مرحلة غير مكتملة → تُمسح (لا نترك بيانات قديمة أو أسماء مواضع مؤقتة)
+      for (const stage of CHALLENGE_STAGES) {
+        await client.query('DELETE FROM challenge_results WHERE round = $1', [stage.key]);
+        for (const team of (extracted[stage.key] || [])) {
+          await client.query(
+            'INSERT INTO challenge_results (round, team) VALUES ($1, $2) ON CONFLICT (round, team) DO NOTHING',
+            [stage.key, team]
+          );
+        }
+      }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
     }
 
-    return results;
+    return extracted;
   } catch (err) {
     console.error('autoCalculateChallengeResults error:', err);
     throw err;
   }
+}
+
+// حالة كل مرحلة للعرض في لوحة التحكم: هل اكتملت؟ ما منتخباتها؟ هل احتُسبت نقاطها؟
+async function getChallengeStageState() {
+  const allMatches = await getMatches();
+
+  const statusRows = await pool.query('SELECT * FROM challenge_stage_status');
+  const statusByRound = {};
+  for (const r of statusRows.rows) statusByRound[r.round] = r;
+
+  const storedRows = await pool.query('SELECT round, team FROM challenge_results');
+  const storedByRound = {};
+  for (const r of storedRows.rows) {
+    if (!storedByRound[r.round]) storedByRound[r.round] = [];
+    storedByRound[r.round].push(r.team);
+  }
+
+  return CHALLENGE_STAGES.map(stage => {
+    const live = getStageQualifiers(allMatches, stage);
+    const status = statusByRound[stage.key] || null;
+    const doneMatches = allMatches
+      .filter(m => m.round === stage.sourceRound)
+      .filter(m => getMatchWinner(m) !== null).length;
+
+    return {
+      key: stage.key,
+      label: stage.label,
+      sourceLabel: stage.sourceLabel,
+      pointsPer: stage.pointsPer,
+      teamsCount: stage.teamsCount,
+      expectedMatches: stage.expectedMatches,
+      decidedMatches: doneMatches,
+      complete: !!live,
+      teams: live || storedByRound[stage.key] || [],
+      calculated: !!status,
+      calculatedAt: status ? status.calculated_at : null,
+      usersCount: status ? status.users_count : 0,
+      totalPoints: status ? status.total_points : 0
+    };
+  });
+}
+
+// تُستدعى بعد اعتماد/تعديل أي نتيجة مباراة.
+// 1) تعيد استخراج المتأهلين تلقائياً  2) تعيد مزامنة نقاط المراحل المحتسبة فقط.
+async function syncChallengeAfterResults() {
+  await autoCalculateChallengeResults();
+  await resyncCalculatedChallengeStages();
 }
 
 // ===== AUTO KNOCKOUT ADVANCEMENT =====

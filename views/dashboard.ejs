@@ -1038,50 +1038,80 @@
               </form>
             </div>
 
-            <!-- Auto-Extracted Results (قراءة فقط) -->
+            <!-- Auto-Extracted Qualifiers + Per-Stage Scoring -->
             <div style="margin-bottom:16px;">
-              <label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:8px;">المنتخبات المتأهلة (مستخرجة تلقائياً من النتائج)</label>
+              <label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:4px;">المنتخبات المتأهلة (مستخرجة تلقائياً من نتائج المباريات المعتمدة)</label>
+              <div style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:10px;">
+                تُستخرج تلقائياً بمجرد اعتماد نتائج الدور السابق. نقاط لعبة التحدي مستقلة تماماً عن نقاط توقعات المباريات.
+              </div>
 
-              <% 
-                var resultsByRound = {};
-                (challengeResults || []).forEach(function(r) {
-                  if (!resultsByRound[r.round]) resultsByRound[r.round] = [];
-                  resultsByRound[r.round].push(r.team);
-                });
-                var rounds = [
-                  { key: 'qf', label: 'دور الـ8' },
-                  { key: 'sf', label: 'دور الـ4' },
-                  { key: 'finalists', label: 'طرفا النهائي' },
-                  { key: 'champion', label: 'البطل' }
-                ];
-              %>
+              <% (challengeStages || []).forEach(function(st) { %>
+              <div style="margin-bottom:10px;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid <%= st.complete ? 'rgba(34,197,94,0.35)' : 'var(--border)' %>;">
 
-              <% rounds.forEach(function(rr) { %>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">
-                <span style="font-size:0.78rem;font-weight:700;min-width:70px;"><%= rr.label %>:</span>
-                <div style="display:flex;flex-wrap:wrap;gap:4px;flex:1;">
-                  <% if (resultsByRound[rr.key] && resultsByRound[rr.key].length > 0) { %>
-                    <% resultsByRound[rr.key].forEach(function(t) { %>
-                    <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:20px;font-size:0.78rem;font-weight:700;">
+                <!-- Stage header -->
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+                  <span style="font-size:0.85rem;font-weight:800;"><%= st.label %></span>
+                  <span style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(212,175,55,0.12);color:#d4af37;">
+                    <%= st.pointsPer %> <%= st.pointsPer >= 11 ? 'نقطة' : 'نقاط' %> لكل منتخب صحيح
+                  </span>
+                  <% if (st.calculated) { %>
+                    <span style="font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:20px;background:rgba(34,197,94,0.15);color:#22c55e;">
+                      ✅ تم احتساب النقاط
+                    </span>
+                  <% } %>
+                </div>
+
+                <!-- Teams / not-complete message -->
+                <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">
+                  <% if (st.complete && st.teams.length > 0) { %>
+                    <% st.teams.forEach(function(t) { %>
+                    <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 11px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:20px;font-size:0.78rem;font-weight:700;">
                       <img src="/flags/<%= (teamFlags && teamFlags[t]) || 'unknown' %>.png" style="width:18px;height:13px;object-fit:cover;border-radius:2px;" onerror="this.style.display='none'">
                       <%= t %>
                     </span>
                     <% }) %>
                   <% } else { %>
-                    <span style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;">لم تكتمل هذه المرحلة بعد</span>
+                    <span style="font-size:0.75rem;color:var(--text-secondary);font-style:italic;">
+                      لم تكتمل هذه المرحلة بعد — حُسمت <%= st.decidedMatches %>/<%= st.expectedMatches %> من مباريات <%= st.sourceLabel %>
+                    </span>
                   <% } %>
                 </div>
+
+                <!-- Scoring button -->
+                <% if (st.complete) { %>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <% if (!st.calculated) { %>
+                    <form method="POST" action="/admin/challenge/calculate/<%= st.key %>">
+                      <button type="submit" class="db-btn" style="background:#d4af37;color:#fff;font-weight:800;">
+                        🧮 احسب نقاط <%= st.label %>
+                      </button>
+                    </form>
+                  <% } else { %>
+                    <form method="POST" action="/admin/challenge/calculate/<%= st.key %>">
+                      <button type="submit" class="db-btn" style="background:#6366f1;color:#fff;font-weight:800;">🔄 إعادة الاحتساب</button>
+                    </form>
+                    <form method="POST" action="/admin/challenge/reset/<%= st.key %>"
+                          onsubmit="return confirm('سيتم حذف نقاط <%= st.label %> فقط من لعبة التحدي. لن تتأثر توقعات المباريات. متابعة؟');">
+                      <button type="submit" class="db-btn db-btn-delete" style="font-weight:800;">↩ تراجع</button>
+                    </form>
+                    <span style="font-size:0.7rem;color:var(--text-secondary);">
+                      <%= st.usersCount %> متسابق · إجمالي <%= st.totalPoints %> نقطة
+                    </span>
+                  <% } %>
+                </div>
+                <% } %>
+
               </div>
               <% }) %>
             </div>
 
-            <!-- Auto-Calculate + Recalculate Buttons -->
-            <div style="display:flex;gap:6px;margin-bottom:16px;">
+            <!-- Global actions -->
+            <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
               <form method="POST" action="/admin/challenge/auto-results">
-                <button type="submit" class="db-btn" style="background:#6366f1;color:#fff;font-weight:800;">🔄 إعادة احتساب المتأهلين</button>
+                <button type="submit" class="db-btn" style="background:#6366f1;color:#fff;font-weight:800;">🔄 إعادة استخراج المتأهلين</button>
               </form>
               <form method="POST" action="/admin/challenge/calculate">
-                <button type="submit" class="db-btn" style="background:#d4af37;color:#fff;font-weight:800;">🧮 احسب نقاط التحدي</button>
+                <button type="submit" class="db-btn" style="background:#d4af37;color:#fff;font-weight:800;">🧮 احسب كل المراحل المكتملة</button>
               </form>
             </div>
 

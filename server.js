@@ -901,6 +901,12 @@ app.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
     const config = await db.getChallengeConfig();
     const challengePicks = await db.getAllChallengePicks();
     const challengeResults = await db.getChallengeResults();
+    var challengeStages = [];
+    try {
+      challengeStages = await db.getChallengeStageState();
+    } catch (stageErr) {
+      console.error('Challenge stage state error:', stageErr.message || stageErr);
+    }
     const newsReadStats = {};
     if (newsItems.length > 0) {
       const allStats = await db.getAllNewsReadStats();
@@ -922,7 +928,7 @@ app.get('/dashboard', requireAuth, requireAdmin, async (req, res) => {
       console.error('Bracket data error:', err.message || err);
     }
 
-    res.render('dashboard', { user: req.user, matches, leaderboard: leaderboardWithMissed, pendingUsers, allUsers, currentRound, publishedRounds, matchesByRound, visiblePredictions, hiddenPredictions, matchPredictions, groups, teamFlags, activeTab, newsItems, allComments, message: null, config, challengePicks, challengeResults, newsReadStats, seedingPairings, bracketStatus, bestThirds, bracketVerification, lockedPublishedMatchCount: lockedPublishedMatches ? lockedPublishedMatches.length : 0 });
+    res.render('dashboard', { user: req.user, matches, leaderboard: leaderboardWithMissed, pendingUsers, allUsers, currentRound, publishedRounds, matchesByRound, visiblePredictions, hiddenPredictions, matchPredictions, groups, teamFlags, activeTab, newsItems, allComments, message: null, config, challengePicks, challengeResults, challengeStages, newsReadStats, seedingPairings, bracketStatus, bestThirds, bracketVerification, lockedPublishedMatchCount: lockedPublishedMatches ? lockedPublishedMatches.length : 0 });
   } catch (err) {
     console.error('Dashboard error:', err);
     res.status(500).render('error', { message: 'حدث خطأ في تحميل لوحة التحكم' });
@@ -945,6 +951,16 @@ app.post('/admin/knockout-teams/:id', requireAuth, requireAdmin, adminLimiter, a
   }
 });
 
+// استخراج متأهلي لعبة التحدي بعد أي تغيير في النتائج.
+// لا يُسمح لخطأ هنا بإفشال حفظ نتيجة المباراة — لعبة التحدي مستقلة تماماً.
+async function syncChallengeSafely() {
+  try {
+    await db.syncChallengeAfterResults();
+  } catch (err) {
+    console.error('Challenge sync error (non-fatal):', err.message || err);
+  }
+}
+
 // Update Match Result
 app.post('/matches/:id/result', requireAuth, requireAdmin, async (req, res) => {
   try {
@@ -962,9 +978,10 @@ app.post('/matches/:id/result', requireAuth, requireAdmin, async (req, res) => {
       await db.calculateGroupStandings();
       await db.advanceKnockoutTeams();
       await db.recalculateAllPredictionPoints();
+      await syncChallengeSafely();
       return res.redirect('/dashboard?tab=results');
     }
-    
+
     const a = parseInt(scoreA, 10);
     const b = parseInt(scoreB, 10);
     if (Number.isNaN(a) || Number.isNaN(b)) return res.redirect('/dashboard?tab=results');
@@ -975,6 +992,8 @@ app.post('/matches/:id/result', requireAuth, requireAdmin, async (req, res) => {
     await db.advanceKnockoutTeams();
     // إعادة احتساب نقاط جميع التوقعات لهذه المباراة
     await db.recalculateAllPredictionPoints();
+    // استخراج متأهلي لعبة التحدي تلقائياً + مزامنة نقاط المراحل المحتسبة
+    await syncChallengeSafely();
     res.redirect('/dashboard?tab=results');
   } catch (err) {
     console.error('Update result error:', err);
@@ -1083,6 +1102,35 @@ app.post('/admin/challenge/calculate', requireAuth, requireAdmin, adminLimiter, 
   } catch (err) { console.error(err); res.redirect('/dashboard?tab=challenge'); }
 });
 
+// احتساب نقاط مرحلة واحدة (دور الـ8 / دور الـ4 / طرفا النهائي / البطل).
+// آمن للتكرار: النقاط تُخزَّن لكل مرحلة ثم يُعاد بناء المجموع — لا تتضاعف أبداً.
+const CHALLENGE_ROUND_KEYS = ['qf', 'sf', 'finalists', 'champion'];
+
+app.post('/admin/challenge/calculate/:round', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
+  try {
+    const round = req.params.round;
+    if (!CHALLENGE_ROUND_KEYS.includes(round)) return res.redirect('/dashboard?tab=challenge');
+    await db.calculateChallengeStagePoints(round);
+    res.redirect('/dashboard?tab=challenge');
+  } catch (err) {
+    console.error('Challenge stage calculate error:', err.message || err);
+    res.redirect('/dashboard?tab=challenge');
+  }
+});
+
+// التراجع عن احتساب مرحلة (يحذف نقاط هذه المرحلة فقط)
+app.post('/admin/challenge/reset/:round', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
+  try {
+    const round = req.params.round;
+    if (!CHALLENGE_ROUND_KEYS.includes(round)) return res.redirect('/dashboard?tab=challenge');
+    await db.resetChallengeStagePoints(round);
+    res.redirect('/dashboard?tab=challenge');
+  } catch (err) {
+    console.error('Challenge stage reset error:', err.message || err);
+    res.redirect('/dashboard?tab=challenge');
+  }
+});
+
 // ===== Bracket / Seeding Routes =====
 // حفظ توزيع الثوالث في دور الـ32 (JSON: { 'R32-03': 'فرنسا', ... })
 app.post('/admin/seeding-save', requireAuth, requireAdmin, async (req, res) => {
@@ -1141,6 +1189,7 @@ app.post('/admin/relink-bracket', requireAuth, requireAdmin, async (req, res) =>
     await db.resetKnockoutTeamsFromRound(5);
     await db.advanceKnockoutTeams();
     await db.recalculateAllPredictionPoints();
+    await syncChallengeSafely();
     res.redirect('/dashboard?tab=seeding');
   } catch (err) {
     console.error('Relink bracket error:', err.message);
@@ -1205,6 +1254,17 @@ db.init()
       }
     } catch (timeFixErr) {
       console.error('R16 kickoff time fix migration error (non-fatal):', timeFixErr.message);
+    }
+
+    // إعادة استخراج متأهلي لعبة التحدي عند الإقلاع.
+    // يصحح أي صفوف قديمة خاطئة في challenge_results خلّفتها النسخة السابقة
+    // (كانت تقرأ الفائزين من الدور الخطأ وتخزن أسماء مواضع مؤقتة مثل "فائز نصف 1").
+    // لا يمنح أي نقاط — الأدمن هو من يضغط زر الاحتساب لكل مرحلة.
+    try {
+      await db.autoCalculateChallengeResults();
+      console.log('✓ Challenge qualifiers re-extracted from approved match results');
+    } catch (challengeErr) {
+      console.error('Challenge auto-extract error (non-fatal):', challengeErr.message);
     }
 
     // ===== Auto-publish next round when current round is fully locked =====
