@@ -451,7 +451,13 @@ app.get('/predictions', requireAuth, async (req, res) => {
     var message = null;
     if (req.query.msg === 'saved') message = 'تم حفظ التوقع بنجاح';
     else if (req.query.msg === 'updated') message = 'تم تحديث التوقع بنجاح';
-    res.render('predictions', { user: req.user, matches: predictions, top3, totalPlayers, allMatchesCount, predictionsCount, userRank, userPoints, message, missedPredictions, commitmentRate, missedMatchNames });
+    // Challenge data for inline tab
+    const challengeConfig = await db.getChallengeConfig();
+    const challengePicks = await db.getChallengePicks(req.user.id);
+    const challengeTeams = Object.values(db.getGroups()).flat();
+    const activeTab = req.query.tab === 'challenge' ? 'challenge' : 'matches';
+    const challengeSaved = req.query.ch_saved === '1';
+    res.render('predictions', { user: req.user, matches: predictions, top3, totalPlayers, allMatchesCount, predictionsCount, userRank, userPoints, message, missedPredictions, commitmentRate, missedMatchNames, challengeConfig, challengePicks, challengeTeams, activeTab, challengeSaved });
   } catch (err) {
     console.error('Predictions error:', err);
     res.status(500).render('error', { message: 'حدث خطأ في تحميل الصفحة' });
@@ -578,7 +584,11 @@ app.post('/challenge/save', requireAuth, async (req, res) => {
     if (!Array.isArray(finalists) || finalists.length !== 2) return res.redirect('/challenge');
     if (!champion) return res.redirect('/challenge');
     await db.saveChallengePicks(req.user.id, { qf, sf, finalists, champion });
-    res.redirect('/challenge?saved=1');
+    if (req.body.source === 'predictions') {
+      res.redirect('/predictions?tab=challenge&ch_saved=1');
+    } else {
+      res.redirect('/challenge?saved=1');
+    }
   } catch (err) {
     console.error('Challenge save error:', err);
     res.redirect('/challenge');
