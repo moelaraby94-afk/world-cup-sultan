@@ -457,7 +457,9 @@ app.get('/predictions', requireAuth, async (req, res) => {
     const challengeTeams = Object.values(db.getGroups()).flat();
     const activeTab = req.query.tab === 'challenge' ? 'challenge' : 'matches';
     const challengeSaved = req.query.ch_saved === '1';
-    res.render('predictions', { user: req.user, matches: predictions, top3, totalPlayers, allMatchesCount, predictionsCount, userRank, userPoints, message, missedPredictions, commitmentRate, missedMatchNames, challengeConfig, challengePicks, challengeTeams, activeTab, challengeSaved });
+    const challengeEditSaved = req.query.ch_edit === '1';
+    const challengeError = req.query.ch_error || null;
+    res.render('predictions', { user: req.user, matches: predictions, top3, totalPlayers, allMatchesCount, predictionsCount, userRank, userPoints, message, missedPredictions, commitmentRate, missedMatchNames, challengeConfig, challengePicks, challengeTeams, activeTab, challengeSaved, challengeEditSaved, challengeError });
   } catch (err) {
     console.error('Predictions error:', err);
     res.status(500).render('error', { message: 'حدث خطأ في تحميل الصفحة' });
@@ -577,20 +579,50 @@ app.get('/challenge', requireAuth, async (req, res) => {
 app.post('/challenge/save', requireAuth, async (req, res) => {
   try {
     const config = await db.getChallengeConfig();
-    if (!config.open) return res.redirect('/challenge');
+    if (!config.open) {
+      if (req.body.source === 'predictions') return res.redirect('/predictions?tab=challenge&ch_error=closed');
+      return res.redirect('/challenge');
+    }
     const { qf, sf, finalists, champion } = req.body;
-    if (!Array.isArray(qf) || qf.length !== 8) return res.redirect('/challenge');
-    if (!Array.isArray(sf) || sf.length !== 4) return res.redirect('/challenge');
-    if (!Array.isArray(finalists) || finalists.length !== 2) return res.redirect('/challenge');
-    if (!champion) return res.redirect('/challenge');
+    if (!Array.isArray(qf) || qf.length !== 8) {
+      if (req.body.source === 'predictions') return res.redirect('/predictions?tab=challenge&ch_error=invalid');
+      return res.redirect('/challenge');
+    }
+    if (!Array.isArray(sf) || sf.length !== 4) {
+      if (req.body.source === 'predictions') return res.redirect('/predictions?tab=challenge&ch_error=invalid');
+      return res.redirect('/challenge');
+    }
+    if (!Array.isArray(finalists) || finalists.length !== 2) {
+      if (req.body.source === 'predictions') return res.redirect('/predictions?tab=challenge&ch_error=invalid');
+      return res.redirect('/challenge');
+    }
+    if (!champion) {
+      if (req.body.source === 'predictions') return res.redirect('/predictions?tab=challenge&ch_error=invalid');
+      return res.redirect('/challenge');
+    }
+    // Validate no duplicates within each stage
+    if (new Set(qf).size !== qf.length || new Set(sf).size !== sf.length || new Set(finalists).size !== finalists.length) {
+      if (req.body.source === 'predictions') return res.redirect('/predictions?tab=challenge&ch_error=duplicate');
+      return res.redirect('/challenge');
+    }
+    // Validate all teams exist in the approved list
+    const validTeams = Object.values(db.getGroups()).flat();
+    const allPicks = [...qf, ...sf, ...finalists, champion];
+    const invalidTeams = allPicks.filter(t => !validTeams.includes(t));
+    if (invalidTeams.length > 0) {
+      if (req.body.source === 'predictions') return res.redirect('/predictions?tab=challenge&ch_error=invalid');
+      return res.redirect('/challenge');
+    }
+    const hadExisting = await db.getChallengePicks(req.user.id);
     await db.saveChallengePicks(req.user.id, { qf, sf, finalists, champion });
     if (req.body.source === 'predictions') {
-      res.redirect('/predictions?tab=challenge&ch_saved=1');
+      res.redirect('/predictions?tab=challenge&ch_saved=1' + (hadExisting ? '&ch_edit=1' : ''));
     } else {
       res.redirect('/challenge?saved=1');
     }
   } catch (err) {
     console.error('Challenge save error:', err);
+    if (req.body.source === 'predictions') return res.redirect('/predictions?tab=challenge&ch_error=server');
     res.redirect('/challenge');
   }
 });

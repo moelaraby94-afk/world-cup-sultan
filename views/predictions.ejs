@@ -29,29 +29,36 @@
     .ch-inline-countdown-lbl { font-size:0.8rem; color:rgba(255,255,255,0.5); margin-bottom:4px; }
     .ch-inline-countdown-val { font-size:2rem; font-weight:900; color:#ef4444; font-family:monospace; letter-spacing:2px; }
     .ch-inline-closed { display:inline-block; padding:8px 20px; background:#ef4444; color:#fff; border-radius:10px; font-weight:800; font-size:0.9rem; }
-    .ch-inline-info { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:14px 16px; margin-bottom:16px; font-size:0.82rem; color:rgba(255,255,255,0.6); }
-    .ch-inline-info-title { font-weight:800; color:rgba(255,255,255,0.85); margin-bottom:8px; }
+    .ch-inline-info { background:#f8f9fb; border:1px solid #e0e4ec; border-radius:14px; padding:14px 16px; margin-bottom:16px; font-size:0.82rem; color:#666; }
+    .ch-inline-info-title { font-weight:800; color:#10233f; margin-bottom:8px; }
     .ch-inline-info-badges { display:flex; gap:8px; flex-wrap:wrap; }
     .ch-inline-info-badge { background:rgba(212,175,55,0.12); padding:4px 12px; border-radius:8px; font-weight:600; color:#d4af37; }
     .ch-inline-saved { text-align:center; padding:12px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:10px; color:#22c55e; font-weight:800; font-size:0.9rem; margin-bottom:16px; }
+    .ch-inline-edit-saved { text-align:center; padding:12px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:10px; color:#22c55e; font-weight:800; font-size:0.9rem; margin-bottom:16px; }
     .ch-inline-edit-btn { display:inline-block; padding:8px 24px; background:var(--primary,#6366f1); color:#fff; font-weight:800; border:none; border-radius:10px; cursor:pointer; font-size:0.88rem; }
-    .ch-inline-section { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:16px; margin-bottom:16px; }
-    .ch-inline-section-title { font-size:1rem; font-weight:800; color:rgba(255,255,255,0.9); margin-bottom:4px; }
-    .ch-inline-section-desc { font-size:0.8rem; color:rgba(255,255,255,0.5); margin-bottom:10px; }
+    .ch-inline-cancel-btn { display:inline-block; padding:8px 24px; background:#ef4444; color:#fff; font-weight:800; border:none; border-radius:10px; cursor:pointer; font-size:0.88rem; margin-right:8px; }
+    .ch-inline-validation { text-align:center; padding:10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:10px; color:#ef4444; font-weight:700; font-size:0.85rem; margin-top:12px; display:none; }
+    .ch-inline-counter-msg { text-align:center; font-size:0.82rem; font-weight:700; margin-top:8px; color:rgba(255,255,255,0.6); }
+    .ch-inline-counter-msg.complete { color:#22c55e; }
+    .ch-inline-edit-info { text-align:center; margin-bottom:16px; padding:12px; background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.25); border-radius:10px; }
+    .ch-inline-edit-info-text { font-size:0.85rem; color:rgba(255,255,255,0.7); font-weight:600; margin-bottom:8px; }
+    .ch-inline-section { background:#f8f9fb; border:1px solid #e0e4ec; border-radius:14px; padding:16px; margin-bottom:16px; }
+    .ch-inline-section-title { font-size:1rem; font-weight:800; color:#10233f; margin-bottom:4px; }
+    .ch-inline-section-desc { font-size:0.8rem; color:#666; margin-bottom:10px; }
     .ch-inline-section-points { display:inline-block; background:rgba(212,175,55,0.15); color:#d4af37; padding:2px 10px; border-radius:20px; font-size:0.75rem; font-weight:800; margin-bottom:12px; }
-    .ch-inline-pick-info { display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:rgba(255,255,255,0.5); margin-bottom:8px; }
+    .ch-inline-pick-info { display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:#666; margin-bottom:8px; }
     .ch-inline-pick-count { font-weight:800; }
     .ch-inline-pick-count.valid { color:#22c55e; }
     .ch-inline-pick-count.invalid { color:#ef4444; }
     .ch-inline-team-grid { display:flex; flex-wrap:wrap; gap:6px; }
-    .ch-inline-team { display:flex; align-items:center; gap:6px; padding:6px 12px; border:2px solid rgba(255,255,255,0.12); border-radius:10px; cursor:pointer; transition:all 0.15s; user-select:none; font-size:0.82rem; font-weight:600; background:rgba(255,255,255,0.03); color:rgba(255,255,255,0.7); }
-    .ch-inline-team:hover { border-color:rgba(99,102,241,0.5); background:rgba(99,102,241,0.08); }
-    .ch-inline-team.selected { border-color:#22c55e; background:rgba(34,197,94,0.12); color:#22c55e; }
-    .ch-inline-team.disabled { opacity:0.4; cursor:not-allowed; }
+    .ch-inline-team { display:flex; align-items:center; gap:6px; padding:6px 12px; border:1px solid #d8dee8; border-radius:10px; cursor:pointer; transition:all 0.15s; user-select:none; font-size:0.82rem; font-weight:600; background:#ffffff; color:#10233f; }
+    .ch-inline-team:hover { border-color:#6366f1; background:#f0f1fe; color:#10233f; }
+    .ch-inline-team.selected { border:2px solid #20bf6b; background:#e9fff1; color:#087a3e; font-weight:700; }
+    .ch-inline-team.disabled { opacity:0.45; cursor:not-allowed; background:#f5f5f5; color:#999; }
     .ch-inline-team-flag { width:20px; height:14px; object-fit:cover; border-radius:2px; }
     .ch-inline-save-btn { display:block; width:100%; padding:14px; border:none; border-radius:12px; font-size:1rem; font-weight:800; cursor:pointer; transition:opacity 0.15s; margin-top:8px; background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; }
     .ch-inline-save-btn:disabled { opacity:0.5; cursor:not-allowed; }
-    .ch-inline-closed-stage { text-align:center; padding:24px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:14px; margin-bottom:16px; color:rgba(255,255,255,0.5); font-size:0.95rem; font-weight:700; }
+    .ch-inline-closed-stage { text-align:center; padding:24px; background:#f8f9fb; border:1px solid #e0e4ec; border-radius:14px; margin-bottom:16px; color:#666; font-size:0.95rem; font-weight:700; }
     @media (max-width:600px) {
       .pred-tab { font-size:0.82rem; padding:12px 6px; }
       .pred-tab svg { width:16px; height:16px; }
@@ -383,17 +390,34 @@
               <% if (challengeSaved) { %>
               <div class="ch-inline-saved">✅ تم حفظ توقعاتك بنجاح</div>
               <% } %>
+              <% if (typeof challengeEditSaved !== 'undefined' && challengeEditSaved) { %>
+              <div class="ch-inline-edit-saved">✅ تم تعديل توقعاتك بنجاح</div>
+              <% } %>
+              <% if (typeof challengeError !== 'undefined' && challengeError) { %>
+              <div style="text-align:center;padding:12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:#ef4444;font-weight:800;font-size:0.9rem;margin-bottom:16px;">
+                <% if (challengeError === 'closed') { %>انتهت فترة تعديل التوقعات لهذه المرحلة.<% } %>
+                <% if (challengeError === 'invalid') { %>حدث خطأ في البيانات المرسلة. تأكد من اختيار العدد الصحيح.<% } %>
+                <% if (challengeError === 'duplicate') { %>لا يمكن اختيار منتخب مكرر في نفس المرحلة.<% } %>
+                <% if (challengeError === 'server') { %>حدث خطأ في الخادم. حاول مرة أخرى.<% } %>
+              </div>
+              <% } %>
 
               <% if (challengePicks && challengePicks.qf && challengeConfig && challengeConfig.open) { %>
-              <div style="text-align:center;margin-bottom:16px;">
-                <button type="button" class="ch-inline-edit-btn" onclick="chInlineToggleEdit()">✏️ تعديل التوقعات</button>
-                <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-top:4px;">تم حفظ توقعاتك سابقاً — يمكنك تعديلها حتى موعد الإغلاق</div>
+              <div class="ch-inline-edit-info" id="chInlineEditInfoMobile">
+                <div class="ch-inline-edit-info-text">📌 توقعك الحالي محفوظ — يمكنك تعديله حتى موعد الإغلاق</div>
+                <button type="button" class="ch-inline-edit-btn" onclick="chInlineStartEdit()">✏️ تعديل التوقعات</button>
               </div>
               <% } %>
 
               <div id="chInlineEditArea" <%= (challengePicks && challengePicks.qf && challengeConfig && challengeConfig.open) ? 'style="display:none"' : '' %>>
               <form id="chInlineForm" method="POST" action="/challenge/save">
                 <input type="hidden" name="source" value="predictions">
+
+                <% if (challengePicks && challengePicks.qf) { %>
+                <div style="text-align:center;margin-bottom:12px;">
+                  <span style="font-size:0.85rem;color:rgba(255,255,255,0.6);font-weight:700;">اختر المنتخبات الجديدة</span>
+                </div>
+                <% } %>
 
                 <!-- Section 1: دور الـ8 -->
                 <div class="ch-inline-section">
@@ -471,16 +495,24 @@
                   </div>
                 </div>
 
-                <button type="submit" class="ch-inline-save-btn" id="chInlineSaveBtn" <%= !challengeConfig || !challengeConfig.open ? 'disabled' : '' %>>
-                  <%= challengePicks && challengePicks.qf ? '💾 تحديث التوقعات' : '💾 حفظ التحدي' %>
-                </button>
+                <div class="ch-inline-counter-msg" id="chInlineCounterMsg"></div>
+                <div class="ch-inline-validation" id="chInlineValidation"></div>
+
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                  <% if (challengePicks && challengePicks.qf) { %>
+                  <button type="button" class="ch-inline-cancel-btn" onclick="chInlineCancelEdit()">إلغاء</button>
+                  <% } %>
+                  <button type="submit" class="ch-inline-save-btn" id="chInlineSaveBtn" <%= !challengeConfig || !challengeConfig.open ? 'disabled' : '' %>>
+                    <%= challengePicks && challengePicks.qf ? '💾 حفظ التعديلات' : '💾 حفظ التحدي' %>
+                  </button>
+                </div>
               </form>
               </div>
 
               <% if (!challengeConfig || !challengeConfig.open) { %>
               <% if (challengePicks && challengePicks.qf) { %>
               <div class="ch-inline-closed-stage">
-                ✅ تم حفظ توقعاتك مسبقاً. هذه المرحلة غير متاحة حالياً للتعديل.
+                ✅ تم حفظ توقعاتك مسبقاً.<br>انتهت فترة تعديل التوقعات لهذه المرحلة.
               </div>
               <% } else { %>
               <div class="ch-inline-closed-stage">
@@ -740,17 +772,34 @@
             <% if (challengeSaved) { %>
             <div class="ch-inline-saved">✅ تم حفظ توقعاتك بنجاح</div>
             <% } %>
+            <% if (typeof challengeEditSaved !== 'undefined' && challengeEditSaved) { %>
+            <div class="ch-inline-edit-saved">✅ تم تعديل توقعاتك بنجاح</div>
+            <% } %>
+            <% if (typeof challengeError !== 'undefined' && challengeError) { %>
+            <div style="text-align:center;padding:12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:#ef4444;font-weight:800;font-size:0.9rem;margin-bottom:16px;">
+              <% if (challengeError === 'closed') { %>انتهت فترة تعديل التوقعات لهذه المرحلة.<% } %>
+              <% if (challengeError === 'invalid') { %>حدث خطأ في البيانات المرسلة. تأكد من اختيار العدد الصحيح.<% } %>
+              <% if (challengeError === 'duplicate') { %>لا يمكن اختيار منتخب مكرر في نفس المرحلة.<% } %>
+              <% if (challengeError === 'server') { %>حدث خطأ في الخادم. حاول مرة أخرى.<% } %>
+            </div>
+            <% } %>
 
             <% if (challengePicks && challengePicks.qf && challengeConfig && challengeConfig.open) { %>
-            <div style="text-align:center;margin-bottom:16px;">
-              <button type="button" class="ch-inline-edit-btn" onclick="chInlineToggleEditDesktop()">✏️ تعديل التوقعات</button>
-              <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-top:4px;">تم حفظ توقعاتك سابقاً — يمكنك تعديلها حتى موعد الإغلاق</div>
+            <div class="ch-inline-edit-info" id="chInlineEditInfoDesktop">
+              <div class="ch-inline-edit-info-text">📌 توقعك الحالي محفوظ — يمكنك تعديله حتى موعد الإغلاق</div>
+              <button type="button" class="ch-inline-edit-btn" onclick="chInlineStartEditDesktop()">✏️ تعديل التوقعات</button>
             </div>
             <% } %>
 
             <div id="chInlineEditAreaDesktop" <%= (challengePicks && challengePicks.qf && challengeConfig && challengeConfig.open) ? 'style="display:none"' : '' %>>
             <form id="chInlineFormDesktop" method="POST" action="/challenge/save">
               <input type="hidden" name="source" value="predictions">
+
+              <% if (challengePicks && challengePicks.qf) { %>
+              <div style="text-align:center;margin-bottom:12px;">
+                <span style="font-size:0.85rem;color:rgba(255,255,255,0.6);font-weight:700;">اختر المنتخبات الجديدة</span>
+              </div>
+              <% } %>
 
               <!-- Section 1: دور الـ8 -->
               <div class="ch-inline-section">
@@ -828,16 +877,24 @@
                 </div>
               </div>
 
-              <button type="submit" class="ch-inline-save-btn" id="chInlineSaveBtnD" <%= !challengeConfig || !challengeConfig.open ? 'disabled' : '' %>>
-                <%= challengePicks && challengePicks.qf ? '💾 تحديث التوقعات' : '💾 حفظ التحدي' %>
-              </button>
+              <div class="ch-inline-counter-msg" id="chInlineCounterMsgD"></div>
+              <div class="ch-inline-validation" id="chInlineValidationD"></div>
+
+              <div style="display:flex;gap:8px;margin-top:12px;">
+                <% if (challengePicks && challengePicks.qf) { %>
+                <button type="button" class="ch-inline-cancel-btn" onclick="chInlineCancelEditDesktop()">إلغاء</button>
+                <% } %>
+                <button type="submit" class="ch-inline-save-btn" id="chInlineSaveBtnD" <%= !challengeConfig || !challengeConfig.open ? 'disabled' : '' %>>
+                  <%= challengePicks && challengePicks.qf ? '💾 حفظ التعديلات' : '💾 حفظ التحدي' %>
+                </button>
+              </div>
             </form>
             </div>
 
             <% if (!challengeConfig || !challengeConfig.open) { %>
             <% if (challengePicks && challengePicks.qf) { %>
             <div class="ch-inline-closed-stage">
-              ✅ تم حفظ توقعاتك مسبقاً. هذه المرحلة غير متاحة حالياً للتعديل.
+              ✅ تم حفظ توقعاتك مسبقاً.<br>انتهت فترة تعديل التوقعات لهذه المرحلة.
             </div>
             <% } else { %>
             <div class="ch-inline-closed-stage">
@@ -878,12 +935,56 @@
 
     // ===== Challenge Inline (Mobile) =====
     var chInlineIsOpen = <%= (challengeConfig && challengeConfig.open) ? 'true' : 'false' %>;
+    var chInlineSections = [['qf',8],['sf',4],['finalists',2],['champion',1]];
+    var chInlineOriginalState = {};
 
-    function chInlineToggleEdit() {
+    function chInlineStartEdit() {
       var area = document.getElementById('chInlineEditArea');
-      if (area) { area.style.display = 'block'; }
-      var btn = event.target;
-      if (btn) btn.style.display = 'none';
+      var info = document.getElementById('chInlineEditInfoMobile');
+      if (area) area.style.display = 'block';
+      if (info) info.style.display = 'none';
+      chInlineSaveOriginalState('');
+      chInlineUpdateCounts();
+    }
+
+    function chInlineCancelEdit() {
+      chInlineRestoreOriginalState('');
+      var area = document.getElementById('chInlineEditArea');
+      var info = document.getElementById('chInlineEditInfoMobile');
+      if (area) area.style.display = 'none';
+      if (info) info.style.display = 'block';
+      chInlineUpdateCounts();
+    }
+
+    function chInlineSaveOriginalState(suffix) {
+      chInlineSections.forEach(function(pair) {
+        var grid = document.getElementById(pair[0] + 'Grid' + suffix);
+        if (!grid) return;
+        chInlineOriginalState[pair[0] + suffix] = [];
+        grid.querySelectorAll('.ch-inline-team').forEach(function(el) {
+          var chk = el.querySelector('input[type=checkbox]');
+          chInlineOriginalState[pair[0] + suffix].push({ el: el, checked: chk ? chk.checked : false });
+        });
+      });
+    }
+
+    function chInlineRestoreOriginalState(suffix) {
+      chInlineSections.forEach(function(pair) {
+        var key = pair[0] + suffix;
+        var saved = chInlineOriginalState[key];
+        if (!saved) return;
+        saved.forEach(function(item) {
+          if (item.checked) {
+            item.el.classList.add('selected');
+            var chk = item.el.querySelector('input[type=checkbox]');
+            if (chk) chk.checked = true;
+          } else {
+            item.el.classList.remove('selected');
+            var chk = item.el.querySelector('input[type=checkbox]');
+            if (chk) chk.checked = false;
+          }
+        });
+      });
     }
 
     function chInlineToggleTeam(el, section, max) {
@@ -904,7 +1005,8 @@
     }
 
     function chInlineUpdateCounts() {
-      [['qf',8],['sf',4],['finalists',2],['champion',1]].forEach(function(pair) {
+      var allValid = true;
+      chInlineSections.forEach(function(pair) {
         var section = pair[0], max = pair[1];
         var grid = document.getElementById(section + 'Grid');
         if (!grid) return;
@@ -915,23 +1017,79 @@
         el.className = 'ch-inline-pick-count';
         if (count === max) el.classList.add('valid');
         else el.classList.add('invalid');
-      });
-      var allValid = true;
-      [['qf',8],['sf',4],['finalists',2],['champion',1]].forEach(function(pair) {
-        var grid = document.getElementById(pair[0] + 'Grid');
-        if (!grid) return;
-        allValid = allValid && grid.querySelectorAll('.ch-inline-team.selected').length === pair[1];
+        if (count !== max) allValid = false;
       });
       var btn = document.getElementById('chInlineSaveBtn');
       if (btn) btn.disabled = !allValid || !chInlineIsOpen;
+      // Counter message
+      var counterMsg = document.getElementById('chInlineCounterMsg');
+      if (counterMsg) {
+        var incomplete = [];
+        chInlineSections.forEach(function(pair) {
+          var grid = document.getElementById(pair[0] + 'Grid');
+          if (!grid) return;
+          var count = grid.querySelectorAll('.ch-inline-team.selected').length;
+          if (count !== pair[1]) incomplete.push(pair[0]);
+        });
+        if (incomplete.length === 0) {
+          counterMsg.textContent = '✅ اكتمل عدد الاختيارات المطلوبة';
+          counterMsg.classList.add('complete');
+        } else {
+          counterMsg.textContent = 'تم اختيار ' + chInlineGetTotalSelected('') + ' من 15 اختيار مطلوب';
+          counterMsg.classList.remove('complete');
+        }
+      }
+      // Validation message
+      var valEl = document.getElementById('chInlineValidation');
+      if (valEl) {
+        if (!allValid) {
+          var firstIncomplete = chInlineSections.find(function(pair) {
+            var grid = document.getElementById(pair[0] + 'Grid');
+            if (!grid) return false;
+            return grid.querySelectorAll('.ch-inline-team.selected').length !== pair[1];
+          });
+          if (firstIncomplete) {
+            var labels = { qf: '8', sf: '4', finalists: '2', champion: '1' };
+            valEl.textContent = 'يجب اختيار ' + labels[firstIncomplete[0]] + ' ' + chInlineStageLabel(firstIncomplete[0]) + ' بالضبط قبل الحفظ.';
+            valEl.style.display = 'block';
+          }
+        } else {
+          valEl.style.display = 'none';
+        }
+      }
+    }
+
+    function chInlineGetTotalSelected(suffix) {
+      var total = 0;
+      chInlineSections.forEach(function(pair) {
+        var grid = document.getElementById(pair[0] + 'Grid' + suffix);
+        if (grid) total += grid.querySelectorAll('.ch-inline-team.selected').length;
+      });
+      return total;
+    }
+
+    function chInlineStageLabel(key) {
+      var labels = { qf: 'منتخبات لدور الـ8', sf: 'منتخبات لدور الـ4', finalists: 'منتخبات لطرفي النهائي', champion: 'منتخب للبطل' };
+      return labels[key] || '';
     }
 
     // ===== Challenge Inline (Desktop) =====
-    function chInlineToggleEditDesktop() {
+    function chInlineStartEditDesktop() {
       var area = document.getElementById('chInlineEditAreaDesktop');
-      if (area) { area.style.display = 'block'; }
-      var btn = event.target;
-      if (btn) btn.style.display = 'none';
+      var info = document.getElementById('chInlineEditInfoDesktop');
+      if (area) area.style.display = 'block';
+      if (info) info.style.display = 'none';
+      chInlineSaveOriginalState('D');
+      chInlineUpdateCountsD();
+    }
+
+    function chInlineCancelEditDesktop() {
+      chInlineRestoreOriginalState('D');
+      var area = document.getElementById('chInlineEditAreaDesktop');
+      var info = document.getElementById('chInlineEditInfoDesktop');
+      if (area) area.style.display = 'none';
+      if (info) info.style.display = 'block';
+      chInlineUpdateCountsD();
     }
 
     function chInlineToggleTeamD(el, section, max) {
@@ -952,7 +1110,8 @@
     }
 
     function chInlineUpdateCountsD() {
-      [['qf',8],['sf',4],['finalists',2],['champion',1]].forEach(function(pair) {
+      var allValid = true;
+      chInlineSections.forEach(function(pair) {
         var section = pair[0], max = pair[1];
         var grid = document.getElementById(section + 'GridD');
         if (!grid) return;
@@ -963,15 +1122,46 @@
         el.className = 'ch-inline-pick-count';
         if (count === max) el.classList.add('valid');
         else el.classList.add('invalid');
-      });
-      var allValid = true;
-      [['qf',8],['sf',4],['finalists',2],['champion',1]].forEach(function(pair) {
-        var grid = document.getElementById(pair[0] + 'GridD');
-        if (!grid) return;
-        allValid = allValid && grid.querySelectorAll('.ch-inline-team.selected').length === pair[1];
+        if (count !== max) allValid = false;
       });
       var btn = document.getElementById('chInlineSaveBtnD');
       if (btn) btn.disabled = !allValid || !chInlineIsOpen;
+      // Counter message
+      var counterMsg = document.getElementById('chInlineCounterMsgD');
+      if (counterMsg) {
+        var incomplete = [];
+        chInlineSections.forEach(function(pair) {
+          var grid = document.getElementById(pair[0] + 'GridD');
+          if (!grid) return;
+          var count = grid.querySelectorAll('.ch-inline-team.selected').length;
+          if (count !== pair[1]) incomplete.push(pair[0]);
+        });
+        if (incomplete.length === 0) {
+          counterMsg.textContent = '✅ اكتمل عدد الاختيارات المطلوبة';
+          counterMsg.classList.add('complete');
+        } else {
+          counterMsg.textContent = 'تم اختيار ' + chInlineGetTotalSelected('D') + ' من 15 اختيار مطلوب';
+          counterMsg.classList.remove('complete');
+        }
+      }
+      // Validation message
+      var valEl = document.getElementById('chInlineValidationD');
+      if (valEl) {
+        if (!allValid) {
+          var firstIncomplete = chInlineSections.find(function(pair) {
+            var grid = document.getElementById(pair[0] + 'GridD');
+            if (!grid) return false;
+            return grid.querySelectorAll('.ch-inline-team.selected').length !== pair[1];
+          });
+          if (firstIncomplete) {
+            var labels = { qf: '8', sf: '4', finalists: '2', champion: '1' };
+            valEl.textContent = 'يجب اختيار ' + labels[firstIncomplete[0]] + ' ' + chInlineStageLabel(firstIncomplete[0]) + ' بالضبط قبل الحفظ.';
+            valEl.style.display = 'block';
+          }
+        } else {
+          valEl.style.display = 'none';
+        }
+      }
     }
 
     // ===== Challenge Countdown =====
